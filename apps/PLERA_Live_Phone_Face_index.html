@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PLERA Live — Phone Face</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  :root{
+    --bg-page:#050510;
+    --bg-shell:#10101b;
+    --bg-shell-inner:#11111f;
+    --border-shell:#777980;
+    --accent:#e8ff7a;
+    --accent-soft:#9fe870;
+    --accent-warm:#f7c37a;
+    --text-main:#f7f7fb;
+    --text-muted:#aeb0c8;
+    --pill:#222231;
+    --danger:#ff6b6b;
+    --success:#63e6b0;
+    --radius-shell:7px;
+    --radius-card:7px;
+    --shadow-shell:0 0 33px rgba(0,0,0,.75);
+  }
+
+  /* PLERA Earth theme override */
+  body.theme-earth{
+    --bg-page:#1f1c19;
+    --bg-shell:#2c2a26;
+    --bg-shell-inner:#2c2a26;
+    --border-shell:#8b7355;
+    --accent:#f3e7b0;
+    --accent-soft:#c4d97b;
+    --accent-warm:#f1a24a;
+    --text-main:#fdf6e3;
+    --text-muted:#c8b79a;
+    --pill:#3e3b32;
+    --danger:#e57373;
+    --success:#8bc34a;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:11px;
+    min-height:77vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 10% 0%, #343a40 0, transparent 55%),
+      radial-gradient(circle at 90% 100%, #8b5cf6 0, transparent 55%),
+      var(--bg-page);
+    color:var(--text-main);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+
+  .phone-wrap{
+    padding:1px 1px;
+  }
+
+  .phone-shell{
+    width:333px;
+    max-width:99%;
+    height:888px; /* stretched taller */
+    max-height:111vh;
+    border-radius:7px;
+    border:1px solid var(--border-shell);
+    background:radial-gradient(circle at top,#22223b,var(--bg-shell-inner));
+    box-shadow:var(--shadow-shell);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    position:relative;
+  }
+
+  /* Ticker */
+  .ticker{
+    height:33px;
+    font-size:11px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-muted);
+    background:linear-gradient(90deg,rgba(148,163,184,.25),rgba(55,65,81,.1));
+    border-bottom:1px solid rgba(148,163,184,.35);
+    position:relative;
+    overflow:hidden;
+  }
+  .ticker-inner{
+    white-space:nowrap;
+    animation:slideTicker 22s linear infinite;
+  }
+  @keyframes slideTicker{
+    0%{transform:translateX(0);}
+    100%{transform:translateX(-50%);}
+  }
+
+  /* Header */
+  .phone-header{
+    padding:44px 33px 11px;
+    display:flex;
+    background:rgba(15,23,42,.95);
+    border-bottom:3px solid rgba(148,163,184,.28);
+    position:relative;
+    justify-content:center;
+  }
+  .phone-header-title{
+    font-size:22px;
+    letter-spacing:.08em;
+    align-items:center;
+    justify-content:center;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .phone-header-sub{
+    font-size:11px;
+    color:var(--text-muted);
+    text-align:center;
+  }
+  .hdr-left,.hdr-right{
+    position:absolute;
+    top:7px;
+  }
+  .hdr-left{left:11px;}
+  .hdr-right{right:8px;display:flex;gap:6px;}
+  .pill-btn{
+    font-size:7px;
+    padding:1px 7px;
+    border-radius:7px;
+    border:1px solid rgba(148,163,184,.8);
+    background:rgba(15,23,42,.9);
+    color:var(--text-main);
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+  }
+  .pill-btn:hover{
+    background:rgba(31,41,55,1);
+  }
+
+  /* Tabs bar */
+  .tab-bar{
+    display:flex;
+    background:rgba(15,23,42,.98);
+    border-bottom:1px solid rgba(148,163,184,.3);
+    font-size:11px;
+  }
+  .tab-btn{
+    flex:1;
+    padding:7px 3px;
+    background:transparent;
+    border:none;
+    color:var(--text-muted);
+    cursor:pointer;
+  }
+  .tab-btn-active{
+    color:var(--accent);
+    font-weight:600;
+    background:rgba(36,37,64,.9);
+  }
+
+  /* Main content */
+  .phone-main{
+    flex:1;
+    position:relative;
+    background:
+      radial-gradient(circle at 0 0,#1f2937 0,transparent 60%),
+      radial-gradient(circle at 100% 100%,#0f172a 0,transparent 60%);
+  }
+  .tab-pane{
+    position:absolute;
+    inset:0;
+    padding:6px 8px 72px; /* extra bottom so feed isn’t behind composer */
+    overflow-y:auto;
+    scrollbar-width:thin;
+  }
+  .hidden{display:none;}
+
+  .empty-state{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:12px;
+    margin-top:12px;
+  }
+
+  /* Cards / posts */
+  .card{
+    background:rgba(15,23,42,.9);
+    border-radius:var(--radius-card);
+    border:1px solid rgba(148,163,184,.3);
+    padding:8px;
+    margin-bottom:8px;
+    box-shadow:0 8px 18px rgba(0,0,0,.55);
+  }
+  .card-header{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:4px;
+  }
+  .avatar{
+    width:24px;
+    height:24px;
+    border-radius:7px;
+    background:linear-gradient(135deg,#f97316,#14b8a6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:666;
+    color:#020617;
+    flex-shrink:0;
+  }
+  .avatar-small{
+    width:24px;
+    height:24px;
+    font-size:11px;
+  }
+  .card-user{
+    font-size:14px;
+    font-weight:555;
+  }
+  .card-meta{
+    font-size:11px;
+    color:var(--text-muted);
+  }
+  .card-body{
+    font-size:14px;
+    margin:3px 0 7px;
+    white-space:pre-wrap;
+  }
+  .card-img{
+    width:100%;
+    max-height:222px;
+    object-fit:cover;
+    border-radius:7px;
+    margin-bottom:7px;
+    border:1px solid rgba(148,163,184,.4);
+  }
+  .card-actions{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:11px;
+    gap:7px;
+  }
+  .reaction-row{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+  }
+  .reaction-btn{
+    border:none;
+    background:rgba(31,41,55,.9);
+    color:var(--text-muted);
+    padding:3px 7px;
+    border-radius:7px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:3px;
+  }
+  .reaction-btn:hover{
+    background:rgba(55,65,81,1);
+  }
+  .like-btn{
+    border:none;
+    background:none;
+    color:var(--accent-soft);
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:3px;
+  }
+  .like-btn span{
+    font-size:14px;
+  }
+
+  .bookmark-btn{
+    border:none;
+    background:none;
+    color:var(--text-muted);
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:3px;
+    font-size:14px;
+  }
+  .bookmark-btn.active{
+    color:var(--accent-warm);
+  }
+
+  /* Manage row under reactions */
+  .card-manage-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:4px;
+    font-size:10px;
+    color:var(--text-muted);
+    gap:6px;
+  }
+  .card-manage-actions{
+    display:flex;
+    gap:6px;
+  }
+  .card-manage-btn{
+    border:none;
+    background:none;
+    color:var(--text-muted);
+    cursor:pointer;
+    font-size:10px;
+    padding:0;
+  }
+  .card-manage-btn:hover{
+    color:var(--accent-soft);
+    text-decoration:underline;
+  }
+
+  /* Floating emoji */
+  .floating-emoji{
+    position:absolute;
+    font-size:18px;
+    animation:floatUp 2.5s ease-out forwards;
+    pointer-events:none;
+  }
+  @keyframes floatUp{
+    0%{opacity:0;transform:translateY(10px) scale(.9);}
+    20%{opacity:1;transform:translateY(0) scale(1);}
+    100%{opacity:0;transform:translateY(-50px) scale(1.15);}
+  }
+
+  /* Stories band */
+  .stories-bar{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:6px;
+  }
+  .story-badge{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    font-size:10px;
+    color:var(--text-muted);
+    cursor:pointer;
+  }
+  .story-ring{
+    padding:2px;
+    border-radius:999px;
+    border:2px solid rgba(248,250,252,.4);
+  }
+  .story-ring.live{
+    border-color:#fb7185;
+    animation:pulseRing 1.6s infinite;
+  }
+  .story-ring img{
+    width:28px;
+    height:28px;
+    border-radius:999px;
+    display:block;
+  }
+  @keyframes pulseRing{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.06);}
+    100%{transform:scale(1);}
+  }
+
+  /* Composer footer */
+  .composer{
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    height:56px;
+    padding:6px 6px 8px;
+    background:rgba(15,23,42,.98);
+    border-top:1px solid rgba(148,163,184,.35);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    z-index:8;
+  }
+  .composer button.icon-btn{
+    width:26px;
+    height:26px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.6);
+    background:rgba(17,24,39,.9);
+    color:var(--text-main);
+    font-size:13px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .composer-input{
+    flex:1;
+    position:relative;
+  }
+  .composer-input input{
+    width:100%;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.7);
+    background:#f9fafb;
+    padding:6px 10px;
+    font-size:12px;
+    outline:none;
+  }
+  .composer-send{
+    border-radius:999px;
+    border:none;
+    padding:6px 10px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    background:linear-gradient(135deg,#fde68a,#bbf7d0);
+    color:#1f2937;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .composer-send:disabled{
+    opacity:.45;
+    cursor:default;
+  }
+  .composer-preview{
+    position:absolute;
+    bottom:60px;
+    left:4px;
+    right:4px;
+    background:rgba(15,23,42,.98);
+    border-radius:12px;
+    border:1px solid rgba(148,163,184,.6);
+    padding:6px;
+    font-size:10px;
+    color:var(--text-muted);
+    display:none;
+  }
+  .composer-preview img{
+    width:100%;
+    max-height:160px;
+    object-fit:cover;
+    border-radius:8px;
+    margin-top:4px;
+  }
+
+  /* Emoji rail */
+  .emoji-rail{
+    position:absolute;
+    right:4px;
+    top:120px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    z-index:4;
+  }
+  .emoji-rail button{
+    border:none;
+    background:rgba(15,23,42,.9);
+    border-radius:999px;
+    width:26px;
+    height:26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,.5);
+    font-size:15px;
+  }
+  .emoji-rail button:hover{
+    background:rgba(30,64,175,.95);
+  }
+
+  /* Overlay base */
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(15,23,42,.94);
+    z-index:20;
+  }
+
+  /* Matrix overlay */
+  .matrix-panel{
+    width:88%;
+    max-width:320px;
+    max-height:82%;
+    border-radius:18px;
+    border:1px solid rgba(148,163,184,.8);
+    background:radial-gradient(circle at top,#111827,#020617);
+    padding:10px;
+    overflow-y:auto;
+  }
+  .matrix-title{
+    text-align:center;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    margin-bottom:6px;
+  }
+  .pill-link{
+    display:block;
+    padding:7px 8px;
+    border-radius:999px;
+    border:1px solid rgba(229,231,235,.78);
+    background:rgba(17,24,39,.9);
+    color:#e5e7eb;
+    text-decoration:none;
+    font-size:10px;
+    text-align:center;
+    margin-bottom:6px;
+  }
+  .pill-link:hover{
+    background:linear-gradient(135deg,#f3f4f6,#e5e7eb);
+    color:#111827;
+  }
+
+  /* Auth overlay */
+  .auth-panel{
+    width:88%;
+    max-width:320px;
+    border-radius:18px;
+    border:1px solid rgba(148,163,184,.8);
+    background:radial-gradient(circle at top,#111827,#020617);
+    padding:14px;
+    font-size:12px;
+  }
+  .auth-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .auth-tab-btn{
+    flex:1;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.7);
+    background:rgba(15,23,42,.7);
+    color:var(--text-muted);
+    font-size:11px;
+    padding:5px;
+    cursor:pointer;
+  }
+  .auth-tab-btn.active{
+    background:linear-gradient(135deg,#fde68a,#a7f3d0);
+    color:#111827;
+    font-weight:600;
+  }
+  .field{
+    margin-bottom:8px;
+  }
+  .field label{
+    display:block;
+    font-size:11px;
+    color:var(--text-muted);
+    margin-bottom:2px;
+  }
+  .field input, .field textarea, .field select{
+    width:100%;
+    padding:6px 8px;
+    border-radius:8px;
+    border:1px solid rgba(148,163,184,.8);
+    font-size:12px;
+    outline:none;
+  }
+  .field textarea{
+    resize:vertical;
+  }
+  .field-error{
+    font-size:10px;
+    color:var(--danger);
+    margin-top:2px;
+  }
+
+  .auth-actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+  }
+  .btn-main{
+    border-radius:999px;
+    padding:6px 12px;
+    border:none;
+    background:linear-gradient(135deg,#fde68a,#bbf7d0);
+    color:#111827;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .btn-ghost{
+    border-radius:999px;
+    padding:5px 10px;
+    border:1px solid rgba(148,163,184,.7);
+    background:transparent;
+    color:var(--text-muted);
+    font-size:10px;
+    cursor:pointer;
+  }
+
+  /* Events */
+  .badge-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    padding:2px 6px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.7);
+    font-size:10px;
+    color:var(--text-muted);
+  }
+  .btn-small{
+    padding:4px 8px;
+    border-radius:999px;
+    border:none;
+    font-size:10px;
+    cursor:pointer;
+  }
+
+  /* Discover / search */
+  .search-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .search-row input{
+    flex:1;
+  }
+  .pill-chip{
+    display:inline-flex;
+    align-items:center;
+    padding:3px 7px;
+    border-radius:999px;
+    font-size:10px;
+    border:1px solid rgba(148,163,184,.7);
+    color:var(--text-muted);
+    margin-right:4px;
+    margin-bottom:4px;
+    cursor:pointer;
+    background:transparent;
+  }
+  .pill-chip.active{
+    background:rgba(74,222,128,.16);
+    color:var(--accent-soft);
+  }
+
+  /* DM drawer */
+  .dm-drawer{
+    position:absolute;
+    inset:0 0 56px 0; /* fills main, leaves composer visible */
+    background:rgba(15,23,42,.98);
+    border-top:1px solid rgba(148,163,184,.4);
+    z-index:15;
+    display:flex;
+    flex-direction:column;
+  }
+  .dm-header{
+    padding:6px 8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid rgba(148,163,184,.35);
+    font-size:11px;
+  }
+  .dm-body{
+    flex:1;
+    display:flex;
+    overflow:hidden;
+  }
+  .dm-list{
+    width:34%;
+    border-right:1px solid rgba(148,163,184,.35);
+    overflow-y:auto;
+    font-size:11px;
+  }
+  .dm-thread{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    font-size:11px;
+  }
+  .dm-contact{
+    padding:6px 6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+  }
+  .dm-contact:hover{
+    background:rgba(31,41,55,1);
+  }
+  .dm-contact.active{
+    background:rgba(55,65,81,1);
+  }
+  .dm-messages{
+    flex:1;
+    padding:6px;
+    overflow-y:auto;
+  }
+  .dm-msg{
+    max-width:80%;
+    padding:5px 7px;
+    border-radius:10px;
+    margin-bottom:4px;
+  }
+  .dm-msg.me{
+    margin-left:auto;
+    background:rgba(74,222,128,.18);
+    border:1px solid rgba(74,222,128,.4);
+  }
+  .dm-msg.them{
+    margin-right:auto;
+    background:rgba(30,64,175,.25);
+    border:1px solid rgba(59,130,246,.45);
+  }
+  .dm-footer{
+    padding:4px 6px;
+    border-top:1px solid rgba(148,163,184,.35);
+    display:flex;
+    gap:4px;
+  }
+  .dm-footer input{
+    flex:1;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.8);
+    padding:5px 9px;
+    font-size:11px;
+    outline:none;
+  }
+
+  /* Event modal */
+  .modal-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(15,23,42,.96);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:18;
+  }
+  .modal-card{
+    width:88%;
+    max-width:320px;
+    border-radius:16px;
+    border:1px solid rgba(148,163,184,.8);
+    background:radial-gradient(circle at top,#111827,#020617);
+    padding:10px;
+    font-size:12px;
+  }
+
+  .mb-4{margin-bottom:4px;}
+  .mt-6{margin-top:6px;}
+  .text-center{text-align:center;}
+
+  @media (max-width:480px){
+    .phone-shell{
+      width:100%;
+      height:100vh;
+      max-height:none;
+      border-radius:0;
+      border:none;
+    }
+    .composer-preview{
+      bottom:68px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+  <div class="phone-shell" id="phoneShell">
+
+    <!-- Ticker -->
+    <div class="ticker">
+      <div class="ticker-inner" id="tickerInner"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="phone-header">
+      <div class="hdr-left">
+        <button class="pill-btn" id="matrixBtn">⟁ Matrix</button>
+      </div>
+      <div>
+        <div class="phone-header-title">PLERA Live</div>
+        <div class="phone-header-sub">Local-only social stream</div>
+      </div>
+      <div class="hdr-right">
+        <button class="pill-btn" id="dmBtn">
+          ✉︎ DMs
+          <span id="dmBadge" style="display:none;background:#f97316;border-radius:999px;padding:0 4px;">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn tab-btn-active" data-tab="home">🏠 Home</button>
+      <button class="tab-btn" data-tab="discover">🔍 Discover</button>
+      <button class="tab-btn" data-tab="events">📅 Events</button>
+      <button class="tab-btn" data-tab="profile">👤 Profile</button>
+    </div>
+
+    <!-- Main -->
+    <div class="phone-main">
+      <section id="tab-home" class="tab-pane"></section>
+      <section id="tab-discover" class="tab-pane hidden"></section>
+      <section id="tab-events" class="tab-pane hidden"></section>
+      <section id="tab-profile" class="tab-pane hidden"></section>
+
+      <!-- Emoji rail -->
+      <div class="emoji-rail" id="emojiRail">
+        <button data-emoji="😊">😊</button>
+        <button data-emoji="🔥">🔥</button>
+        <button data-emoji="🎉">🎉</button>
+        <button data-emoji="❤️">❤️</button>
+        <button data-emoji="✨">✨</button>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer" id="composer">
+        <button class="icon-btn" id="micBtn" title="Voice (placeholder)">🎤</button>
+        <button class="icon-btn" id="imgBtn" title="Attach image">📷</button>
+        <div class="composer-input">
+          <input id="composerInput" type="text" placeholder="Share something…" autocomplete="off">
+          <div class="composer-preview" id="composerPreview">
+            <span id="composerPreviewText">Image attached</span>
+            <img id="composerPreviewImg" alt="">
+          </div>
+        </div>
+        <button class="composer-send" id="sendBtn" disabled>Send</button>
+        <input type="file" id="imgFileInput" accept="image/*" style="display:none;">
+      </div>
+
+      <!-- DM Drawer -->
+      <div class="dm-drawer hidden" id="dmDrawer">
+        <div class="dm-header">
+          <span>Direct Messages</span>
+          <button class="btn-ghost" id="dmCloseBtn">Close</button>
+        </div>
+        <div class="dm-body">
+          <div class="dm-list" id="dmList"></div>
+          <div class="dm-thread">
+            <div class="dm-messages" id="dmMessages"></div>
+            <div class="dm-footer">
+              <input id="dmInput" type="text" placeholder="Type a message…">
+              <button class="btn-small" id="dmSendBtn">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Matrix overlay -->
+      <div class="overlay hidden" id="matrixOverlay">
+        <div class="matrix-panel">
+          <div class="matrix-title">Sacred Tools · Matrix</div>
+          <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:8px;">
+            Local-only directory. Links open in a new tab.
+          </p>
+          <a class="pill-link" href="https://www.vervenveda.com/home" target="_blank" rel="noopener">Verve N Veda · Home</a>
+          <a class="pill-link" href="https://www.khaemenesacademy.org" target="_blank" rel="noopener">Khaemenes Academy</a>
+          <a class="pill-link" href="https://www.vervenveda.com" target="_blank" rel="noopener">Verve N Veda</a>
+          <a class="pill-link" href="https://www.vervenveda.com/inspiration" target="_blank" rel="noopener">Inspiration</a>
+          <a class="pill-link" href="https://www.vervenveda.com/theverifier" target="_blank" rel="noopener">The Verifier · News</a>
+          <a class="pill-link" href="https://www.vervenveda.com/weather" target="_blank" rel="noopener">Solanar · Weather</a>
+          <a class="pill-link" href="https://www.vervenveda.com/arshif" target="_blank" rel="noopener">ARSHIF Archives</a>
+          <a class="pill-link" href="https://www.khaemenesacademy.org/noorai-darib" target="_blank" rel="noopener">NoorAI Darib · Qur’an</a>
+          <a class="pill-link" href="https://www.vervenveda.com/myartgallery" target="_blank" rel="noopener">My Art Gallery</a>
+          <a class="pill-link" href="https://www.vervenveda.com/onenationforall" target="_blank" rel="noopener">One Nation For All</a>
+          <a class="pill-link" href="https://www.vervenveda.com/protools" target="_blank" rel="noopener">Pro Tools</a>
+          <a class="pill-link" href="https://www.vervenveda.com/website-design" target="_blank" rel="noopener">Website Design</a>
+          <a class="pill-link" href="https://www.vervenveda.com/bazaarart" target="_blank" rel="noopener">Bazaar Art</a>
+          <a class="pill-link" href="https://www.khaemenesacademy.org/creche" target="_blank" rel="noopener">Creche</a>
+          <div style="text-align:center;margin-top:8px;">
+            <button class="btn-ghost" id="matrixCloseBtn">Back</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auth overlay -->
+      <div class="overlay" id="authOverlay">
+        <div class="auth-panel">
+          <div class="text-center mb-4">
+            <div style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;">PLERA Live Social</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Create a local account to join the stream</div>
+          </div>
+          <div class="auth-tabs">
+            <button class="auth-tab-btn active" id="authTabSignup">Create Account</button>
+            <button class="auth-tab-btn" id="authTabLogin">Sign In</button>
+          </div>
+          <div id="authSignup">
+            <div class="field">
+              <label for="signupName">Full name</label>
+              <input id="signupName" type="text" autocomplete="name">
+              <div class="field-error" id="signupNameErr"></div>
+            </div>
+            <div class="field">
+              <label for="signupEmail">Email (local only)</label>
+              <input id="signupEmail" type="email" autocomplete="email">
+              <div class="field-error" id="signupEmailErr"></div>
+            </div>
+            <div class="field">
+              <label for="signupPassword">Password (this browser only)</label>
+              <input id="signupPassword" type="password" autocomplete="new-password">
+              <div class="field-error" id="signupPasswordErr"></div>
+            </div>
+            <div class="field">
+              <label for="signupBio">Short bio (optional)</label>
+              <textarea id="signupBio" rows="2" maxlength="160"></textarea>
+            </div>
+
+            <div style="margin-top:4px;text-align:center;">
+              <button class="btn-ghost" id="authResetBtn" style="font-size:10px;">
+                Reset PLERA Live on this device
+              </button>
+            </div>
+
+            <div class="auth-actions">
+              <button class="btn-main" id="signupSubmit">Join PLERA Live</button>
+              <button class="btn-ghost" id="signupDemo">Skip · Use Demo</button>
+            </div>
+          </div>
+          <div id="authLogin" class="hidden">
+            <div class="field">
+              <label for="loginEmail">Email</label>
+              <input id="loginEmail" type="email" autocomplete="email">
+            </div>
+            <div class="field">
+              <label for="loginPassword">Password</label>
+              <input id="loginPassword" type="password" autocomplete="current-password">
+              <div class="field-error" id="loginErr"></div>
+            </div>
+            <div class="auth-actions">
+              <button class="btn-main" id="loginSubmit">Sign In</button>
+              <button class="btn-ghost" id="loginBackSignup">Back to Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event modal -->
+      <div class="modal-backdrop hidden" id="eventModal">
+        <div class="modal-card">
+          <div style="font-weight:600;margin-bottom:6px;font-size:12px;">Create Event</div>
+          <div class="field">
+            <label for="eventTitle">Title</label>
+            <input id="eventTitle" type="text" placeholder="Gallery Night">
+            <div class="field-error" id="eventTitleErr"></div>
+          </div>
+          <div class="field">
+            <label for="eventTime">Time</label>
+            <input id="eventTime" type="text" placeholder="Fri · 7:00 PM">
+            <div class="field-error" id="eventTimeErr"></div>
+          </div>
+          <div class="field">
+            <label for="eventLocation">Location</label>
+            <input id="eventLocation" type="text" placeholder="PLERA Atrium">
+            <div class="field-error" id="eventLocationErr"></div>
+          </div>
+          <div class="field">
+            <label for="eventCapacity">Capacity</label>
+            <input id="eventCapacity" type="number" min="1" max="1000" value="40">
+            <div class="field-error" id="eventCapacityErr"></div>
+          </div>
+          <div class="field" style="display:flex;align-items:center;gap:4px;">
+            <input id="eventAutoJoin" type="checkbox" checked>
+            <label for="eventAutoJoin" style="margin:0;font-size:11px;color:var(--text-muted);">Auto-join me to this event</label>
+          </div>
+          <div class="auth-actions">
+            <button class="btn-ghost" id="eventCancel">Cancel</button>
+            <button class="btn-main" id="eventSave">Save</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- phone-main -->
+  </div><!-- phone-shell -->
+</div><!-- phone-wrap -->
+
+<script>
+(function(){
+  'use strict';
+
+  /* ===========================
+     LOCAL STORAGE KEYS
+     =========================== */
+  const K = {
+    USERS:'plera_live_users_v1',
+    CURRENT:'plera_live_current_user_v1',
+    POSTS:'plera_live_posts_v1',
+    EVENTS:'plera_live_events_v1',
+    DMS:'plera_live_dms_v1',
+    THEME:'plera_live_theme_v1',
+    TICKER:'plera_live_ticker_v1'
+  };
+
+  const DEFAULT_TICKER_LINES = [
+    'PLERA Live · Local stream awakening',
+    'Featured Creator: Jenny Pearl',
+    'GAMUT +12% · ARSH +5% · HOPE +∞',
+    'Gallery Nights every Friday',
+    'Tap Matrix for the full PLERA orbit'
+  ];
+
+  function load(key, fallback){
+    try{
+      const raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      return JSON.parse(raw);
+    }catch(e){
+      console.warn('load fail', key, e);
+      return fallback;
+    }
+  }
+  function save(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }
+    catch(e){ console.warn('save fail', key, e); }
+  }
+
+  /* ===========================
+     STATE
+     =========================== */
+
+  let users = load(K.USERS, []);
+  if (!Array.isArray(users)) users = [];
+
+  let currentUserId = load(K.CURRENT, null);
+
+  let posts = load(K.POSTS, []);
+  if (!Array.isArray(posts)) posts = [];
+
+  let events = load(K.EVENTS, seedEvents());
+  if (!Array.isArray(events)) events = seedEvents();
+
+  let dms = load(K.DMS, { threads:{} });
+  if (!dms || typeof dms !== 'object' || !dms.threads || typeof dms.threads !== 'object') {
+    dms = { threads:{} };
+  }
+
+  let tickerLines = load(K.TICKER, DEFAULT_TICKER_LINES.slice());
+  if (!Array.isArray(tickerLines)) {
+    tickerLines = DEFAULT_TICKER_LINES.slice();
+  }
+
+  let theme = load(K.THEME, 'cosmic');
+  if (typeof theme !== 'string') theme = 'cosmic';
+
+  /* ===========================
+     BACKEND SYNC (optional)
+     =========================== */
+
+  const BACKEND = {
+    enabled: false, // set to true when backend is deployed
+    baseURL: 'https://your-plera-backend.example.com'
+  };
+
+  let backendSyncTimeout = null;
+
+  function backendBase(){
+    return BACKEND.baseURL.replace(/\/+$/,'');
+  }
+
+  async function syncFromBackend(){
+    if(!BACKEND.enabled || typeof fetch === 'undefined') return;
+    try{
+      const res = await fetch(backendBase() + '/state');
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+
+      if(Array.isArray(data.users)){ users = data.users; save(K.USERS, users); }
+      if(Array.isArray(data.posts)){ posts = data.posts; save(K.POSTS, posts); }
+      if(Array.isArray(data.events)){ events = data.events; save(K.EVENTS, events); }
+      if(data.dms && typeof data.dms==='object'){ dms = data.dms; save(K.DMS, dms); }
+      if(Array.isArray(data.tickerLines)){
+        tickerLines = data.tickerLines;
+        save(K.TICKER, tickerLines);
+        renderTicker();
+      }
+    }catch(e){
+      console.warn('syncFromBackend failed', e);
+    }
+  }
+
+  async function syncToBackend(){
+    if(!BACKEND.enabled || typeof fetch === 'undefined') return;
+    try{
+      await fetch(backendBase() + '/state', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ users, posts, events, dms, tickerLines })
+      });
+    }catch(e){
+      console.warn('syncToBackend failed', e);
+    }
+  }
+
+  function scheduleSyncToBackend(){
+    if(!BACKEND.enabled || typeof fetch === 'undefined') return;
+    if(backendSyncTimeout) clearTimeout(backendSyncTimeout);
+    backendSyncTimeout = setTimeout(syncToBackend, 800);
+  }
+
+  /* ===========================
+     CONSTANTS
+     =========================== */
+
+  const REACTIONS = ['👍','😂','🔥','🎉'];
+  const GROUPS = [
+    {id:'grp_watercolor', name:'Watercolor Makers'},
+    {id:'grp_digital', name:'Digital Dreamers'},
+    {id:'grp_collage', name:'Collage Coven'},
+    {id:'grp_kids', name:'Kids & Family Art'}
+  ];
+  const DM_CONTACTS = [
+    {id:'ct_arella', name:'Arella', initials:'A'},
+    {id:'ct_regalus', name:'Regalus', initials:'R'},
+    {id:'ct_nyra', name:'Nyra', initials:'N'}
+  ];
+
+  let activeTab = 'home';
+  let activeDmContact = null;
+  let searchQuery = '';
+  let discoverFilter = 'all'; // all | mine | images | saved
+  let composerImageData = null;
+  let editingPostId = null;   // composer-based edit
+
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  const homeTab = $('#tab-home');
+  const discoverTab = $('#tab-discover');
+  const eventsTab = $('#tab-events');
+  const profileTab = $('#tab-profile');
+  const composerInput = $('#composerInput');
+  const sendBtn = $('#sendBtn');
+  const imgBtn = $('#imgBtn');
+  const imgFileInput = $('#imgFileInput');
+  const composerPreview = $('#composerPreview');
+  const composerPreviewImg = $('#composerPreviewImg');
+  const composerPreviewText = $('#composerPreviewText');
+  const authOverlay = $('#authOverlay');
+  const eventModal = $('#eventModal');
+  const dmDrawer = $('#dmDrawer');
+  const dmList = $('#dmList');
+  const dmMessages = $('#dmMessages');
+  const dmInput = $('#dmInput');
+  const dmBadge = $('#dmBadge');
+
+  function getCurrentUser(){
+    const u = users.find(u=>u.id===currentUserId) || null;
+    if(u && !u.groups) u.groups=[];
+    if(u && !u.savedPostIds) u.savedPostIds=[];
+    if(u && !u.tags) u.tags=[];
+    return u;
+  }
+
+  function upsertUser(user){
+    if(!user.groups) user.groups=[];
+    if(!user.savedPostIds) user.savedPostIds=[];
+    if(!user.tags) user.tags=[];
+    const idx = users.findIndex(u=>u.id===user.id);
+    if(idx>=0) users[idx]=user; else users.push(user);
+    save(K.USERS, users);
+    scheduleSyncToBackend();
+  }
+
+  function seedEvents(){
+    return [
+      {id:101,title:'Gallery Night • Emerging Voices',time:'Tonight · 7:00 PM',location:"Hope's Haven Atrium",capacity:50,goingIds:[],createdBy:null},
+      {id:102,title:'Workshop • Story Beats for PROSE',time:'Sat · 1:00 PM',location:"Archaemenes Hall B",capacity:60,goingIds:[],createdBy:null},
+      {id:103,title:'PLERA Jam • Live Collab',time:'Sun · 5:00 PM',location:'GAMUT Studio A',capacity:40,goingIds:[],createdBy:null}
+    ];
+  }
+
+  function escapeHtml(str){
+    return String(str||'').replace(/[&<>"']/g, c=>({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  /* ===========================
+     THEME
+     =========================== */
+
+  function applyTheme(name){
+    theme = name;
+    if(name==='earth'){
+      document.body.classList.add('theme-earth');
+    }else{
+      document.body.classList.remove('theme-earth');
+    }
+    save(K.THEME, theme);
+  }
+
+  applyTheme(theme);
+
+  /* ===========================
+     TICKER
+     =========================== */
+
+  function renderTicker(){
+    const inner = $('#tickerInner');
+    if(!inner) return;
+    const lines = (tickerLines && tickerLines.length) ? tickerLines : DEFAULT_TICKER_LINES;
+    const text = lines.join(' · ');
+    inner.textContent = text + ' · ' + text + ' · ';
+  }
+
+  renderTicker();
+
+  /* ===========================
+     RESET (this app only)
+     =========================== */
+
+  function resetPleraStorage(){
+    const msg = 'This will clear PLERA Live accounts, posts, events, DMs, ticker, and settings stored in this browser for this app only. Other sites and tools are untouched.\n\nProceed?';
+    if(!window.confirm(msg)) return;
+    Object.values(K).forEach(key=>{
+      try{ localStorage.removeItem(key); }catch(e){}
+    });
+    location.reload();
+  }
+
+  /* ===========================
+     AUTH
+     =========================== */
+
+  function validateSignup(){
+    const name = $('#signupName').value.trim();
+    const email = $('#signupEmail').value.trim();
+    const pwd = $('#signupPassword').value;
+    let ok = true;
+
+    const nameErr = (!name) ? 'Name required' :
+                    (name.length<2 ? 'Name too short' : '');
+    $('#signupNameErr').textContent = nameErr;
+    if(nameErr) ok=false;
+
+    const emailErr = (!email || !email.includes('@')) ? 'Valid email required' : '';
+    $('#signupEmailErr').textContent = emailErr;
+    if(emailErr) ok=false;
+
+    const pwdErr = (!pwd || pwd.length<4) ? 'Password ≥ 4 characters' : '';
+    $('#signupPasswordErr').textContent = pwdErr;
+    if(pwdErr) ok=false;
+
+    return ok;
+  }
+
+  function handleSignup(){
+    if(!validateSignup()) return;
+    const name = $('#signupName').value.trim();
+    const email = $('#signupEmail').value.trim();
+    const pwd = $('#signupPassword').value;
+    const bio = $('#signupBio').value.trim();
+
+    if(users.some(u=>u.email.toLowerCase()===email.toLowerCase())){
+      $('#signupEmailErr').textContent = 'Account already exists for this email';
+      return;
+    }
+
+    const user = {
+      id:'u_'+Date.now(),
+      name,
+      email,
+      password:pwd,
+      bio,
+      avatar:'',
+      groups:[],
+      notifications:false,
+      savedPostIds:[],
+      tags:[]
+    };
+    users.push(user);
+    save(K.USERS, users);
+    currentUserId = user.id;
+    save(K.CURRENT, currentUserId);
+    authOverlay.classList.add('hidden');
+    ensureSeedPosts();
+    ensureDmHidden();
+    renderAll();
+    scheduleSyncToBackend();
+  }
+
+  const authResetBtn = $('#authResetBtn');
+  if (authResetBtn) {
+    authResetBtn.addEventListener('click', resetPleraStorage);
+  }
+
+  function handleLogin(){
+    const emailInput = $('#loginEmail');
+    const pwdInput   = $('#loginPassword');
+    const errEl      = $('#loginErr');
+
+    if (!emailInput || !pwdInput || !errEl) {
+      alert('Login UI elements not found.');
+      return;
+    }
+
+    const email = emailInput.value.trim();
+    const pwd   = pwdInput.value;
+    errEl.textContent = '';
+
+    if (!Array.isArray(users) || users.length === 0) {
+      errEl.textContent = 'No local account found on this device. Use "Create Account" or "Skip · Use Demo" first.';
+      return;
+    }
+
+    if (!email || !pwd) {
+      errEl.textContent = 'Please enter both email and password.';
+      return;
+    }
+
+    const user = users.find(u =>
+      u &&
+      typeof u.email === 'string' &&
+      u.email.toLowerCase() === email.toLowerCase()
+    );
+
+    if (!user || user.password !== pwd) {
+      errEl.textContent = 'Invalid email or password for this browser.';
+      return;
+    }
+
+    currentUserId = user.id;
+    save(K.CURRENT, currentUserId);
+
+    authOverlay.classList.add('hidden');
+    ensureSeedPosts();
+    ensureDmHidden();
+    renderAll();
+  }
+
+  function handleDemoAccount(){
+    // Prefer existing demo user
+    let demo = users.find(u => u && u.id === 'u_demo');
+
+    if (!demo) {
+      demo = {
+        id:'u_demo',
+        name:'Jenny Pearl',
+        email:'demo@plera.local',
+        password:'demo',
+        bio:'Artist & founder of PLERA.',
+        avatar:'',
+        groups:['grp_watercolor','grp_digital'],
+        notifications:false,
+        savedPostIds:[],
+        tags:['founder','artist']
+      };
+      users.push(demo);
+      save(K.USERS, users);
+    }
+
+    currentUserId = demo.id;
+    save(K.CURRENT, currentUserId);
+    authOverlay.classList.add('hidden');
+    ensureSeedPosts();
+    ensureDmHidden();
+    renderAll();
+    scheduleSyncToBackend();
+  }
+
+  const authTabSignup = $('#authTabSignup');
+  const authTabLogin = $('#authTabLogin');
+  if(authTabSignup && authTabLogin){
+    authTabSignup.addEventListener('click', ()=>{
+      authTabSignup.classList.add('active');
+      authTabLogin.classList.remove('active');
+      $('#authSignup').classList.remove('hidden');
+      $('#authLogin').classList.add('hidden');
+    });
+    authTabLogin.addEventListener('click', ()=>{
+      authTabLogin.classList.add('active');
+      authTabSignup.classList.remove('active');
+      $('#authLogin').classList.remove('hidden');
+      $('#authSignup').classList.add('hidden');
+    });
+  }
+
+  const loginBackSignup = $('#loginBackSignup');
+  if(loginBackSignup){
+    loginBackSignup.addEventListener('click', ()=>{
+      if(authTabSignup) authTabSignup.click();
+    });
+  }
+
+  const signupSubmit = $('#signupSubmit');
+  if(signupSubmit) signupSubmit.addEventListener('click', handleSignup);
+
+  const signupDemo = $('#signupDemo');
+  if(signupDemo) signupDemo.addEventListener('click', handleDemoAccount);
+
+  const loginSubmit = $('#loginSubmit');
+  if(loginSubmit) loginSubmit.addEventListener('click', handleLogin);
+
+  /* ===========================
+     SEED POSTS
+     =========================== */
+
+  function ensureSeedPosts(){
+    if(posts.length) return;
+    const u = getCurrentUser();
+    const now = Date.now();
+    posts = [
+      {
+        id: now-200000,
+        userId:'seed_arella',
+        authorName:'Arella',
+        content:'First sketch of the day ✨ experimental color fields and quiet lines.',
+        image:null,
+        createdAt: now-200000,
+        likes:3,
+        reactions:{'👍':2,'😂':0,'🔥':3,'🎉':1},
+        groupId:'grp_digital'
+      },
+      {
+        id: now-120000,
+        userId:'seed_regalus',
+        authorName:'Regalus',
+        content:'Warm-up layer for tonight’s gallery piece.',
+        image:null,
+        createdAt: now-120000,
+        likes:1,
+        reactions:{'👍':1,'😂':0,'🔥':2,'🎉':0},
+        groupId:'grp_watercolor'
+      }
+    ];
+    if(u){
+      posts.push({
+        id: now-60000,
+        userId: u.id,
+        authorName: u.name,
+        content:'Testing PLERA Live — hello world 🌙',
+        image:null,
+        createdAt: now-60000,
+        likes:0,
+        reactions:{'👍':0,'😂':0,'🔥':0,'🎉':0},
+        groupId: (u.groups && u.groups[0]) || null
+      });
+    }
+    save(K.POSTS, posts);
+    scheduleSyncToBackend();
+  }
+
+  /* ===========================
+     FEED + ALGO
+     =========================== */
+
+  function computePostScore(p){
+    const now = Date.now();
+    const ageH = (now - p.createdAt)/(1000*60*60);
+    const base = -ageH;
+    const engagement = (p.likes||0) +
+      REACTIONS.reduce((s,e)=>s+(p.reactions?.[e]||0),0)*0.6;
+    const meBoost = (p.userId===currentUserId) ? 1.2 : 0;
+    return base + engagement*0.25 + meBoost;
+  }
+
+  function sortedPosts(){
+    return posts.slice().sort((a,b)=>computePostScore(b)-computePostScore(a));
+  }
+
+  function timeAgo(ts){
+    const diff = Date.now()-ts;
+    const s = Math.floor(diff/1000);
+    if(s<60) return 'Just now';
+    const m = Math.floor(s/60);
+    if(m<60) return m+'m ago';
+    const h = Math.floor(m/60);
+    if(h<24) return h+'h ago';
+    const d = Math.floor(h/24);
+    return d+'d ago';
+  }
+
+  function storyBadge(name, initials, live){
+    return '<div class="story-badge"><div class="story-ring'+(live?' live':'')+'"><img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'%3E%3Crect width=\'64\' height=\'64\' rx=\'32\' fill=\'%23111827\'/%3E%3Ctext x=\'50%25\' y=\'55%25\' font-size=\'28\' text-anchor=\'middle\' fill=\'%23e5e7eb\' font-family=\'system-ui\'%3E'+encodeURIComponent(initials)+'%3C/text%3E%3C/svg%3E" alt=""></div><span>'+escapeHtml(name)+'</span></div>';
+  }
+
+  function renderHome(){
+    const u = getCurrentUser();
+    const list = sortedPosts();
+    let html = '';
+
+    html += '<div class="stories-bar">';
+    html += storyBadge('Arella','A',true);
+    html += storyBadge('Regalus','R',false);
+    html += storyBadge('Nyra','N',true);
+    html += '</div>';
+
+    if(!list.length){
+      html += '<div class="empty-state">No posts yet. Share something to begin the stream.</div>';
+      homeTab.innerHTML = html;
+      return;
+    }
+
+    const savedIds = (u && u.savedPostIds) ? u.savedPostIds : [];
+
+    list.forEach(p=>{
+      const author = p.userId==='seed_arella'||p.userId==='seed_regalus'
+        ? p.authorName
+        : (users.find(u2=>u2.id===p.userId)?.name || p.authorName || 'Creator');
+      const initials = author ? author.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase() : 'A';
+      const saved = savedIds.includes(p.id);
+      const isMine = u && p.userId===u.id;
+
+      html += '<article class="card" data-post-id="'+p.id+'">';
+      html += '<div class="card-header">';
+      html += '<div class="avatar">'+escapeHtml(initials)+'</div>';
+      html += '<div><div class="card-user">'+escapeHtml(author)+'</div>';
+      html += '<div class="card-meta">'+timeAgo(p.createdAt);
+      if(p.groupId){
+        const g = GROUPS.find(g=>g.id===p.groupId);
+        if(g) html += ' · '+escapeHtml(g.name);
+      }
+      html += '</div></div>';
+      html += '<button class="bookmark-btn'+(saved?' active':'')+'" data-action="save" data-post-id="'+p.id+'" title="Save / unsave">';
+      html += saved ? '🔖' : '📎';
+      html += '</button>';
+      html += '</div>';
+
+      if(p.content){
+        html += '<div class="card-body">'+escapeHtml(p.content)+'</div>';
+      }
+      if(p.image){
+        html += '<img class="card-img" src="'+p.image+'" alt="post image">';
+      }
+
+      html += '<div class="card-actions">';
+      html += '<button class="like-btn" data-action="like" data-post-id="'+p.id+'">❤️ <span>'+(p.likes||0)+'</span></button>';
+      html += '<div class="reaction-row">';
+      REACTIONS.forEach(r=>{
+        const count = (p.reactions && p.reactions[r]) || 0;
+        html += '<button class="reaction-btn" data-action="react" data-emoji="'+r+'" data-post-id="'+p.id+'">'+r+(count?(' '+count):'')+'</button>';
+      });
+      html += '</div></div>';
+
+      html += '<div class="card-manage-row">';
+      html += '<div class="card-manage-actions">';
+      if(isMine){
+        html += '<button class="card-manage-btn" data-action="editPost" data-post-id="'+p.id+'">✏️ Edit</button>';
+        html += '<button class="card-manage-btn" data-action="deletePost" data-post-id="'+p.id+'">🗑 Delete</button>';
+      }
+      html += '<button class="card-manage-btn" data-action="repostPost" data-post-id="'+p.id+'">↻ Repost</button>';
+      html += '</div></div>';
+
+      html += '</article>';
+    });
+
+    homeTab.innerHTML = html;
+  }
+
+  if(homeTab){
+    homeTab.addEventListener('click', function(e){
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const postId = btn.getAttribute('data-post-id');
+      const action = btn.getAttribute('data-action');
+      if(!postId || !action) return;
+      const post = posts.find(p=>String(p.id)===String(postId));
+      if(!post) return;
+
+      const u = getCurrentUser();
+
+      if(action==='like'){
+        post.likes = (post.likes||0)+1;
+        dropFloatingEmoji('❤️', e.clientX, e.clientY);
+      }else if(action==='react'){
+        const emoji = btn.getAttribute('data-emoji');
+        if(!post.reactions) post.reactions={};
+        post.reactions[emoji] = (post.reactions[emoji]||0)+1;
+        dropFloatingEmoji(emoji, e.clientX, e.clientY);
+      }else if(action==='save'){
+        toggleSavePost(post.id);
+      }else if(action==='editPost'){
+        if(!u || post.userId!==u.id){
+          alert('You can only edit your own posts in this browser.');
+        }else{
+          editingPostId = post.id;
+          if(composerInput){
+            composerInput.value = post.content || '';
+          }
+          composerImageData = post.image || null;
+          if(composerPreviewImg && composerImageData){
+            composerPreviewImg.src = composerImageData;
+          }
+          updateComposerState();
+          updateComposerPreview();
+          setComposerEditMode(true);
+          const composerEl = document.getElementById('composer');
+          if(composerEl && composerEl.scrollIntoView){
+            composerEl.scrollIntoView({behavior:'smooth', block:'end'});
+          }
+        }
+      }else if(action==='deletePost'){
+        if(!u || post.userId!==u.id){
+          alert('You can only delete your own posts in this browser.');
+        }else{
+          if(window.confirm('Delete this post? This cannot be undone.')){
+            posts = posts.filter(p=>p.id!==post.id);
+          }
+        }
+      }else if(action==='repostPost'){
+        if(!u){
+          alert('Sign in to repost.');
+        }else{
+          const now = Date.now();
+          const newPost = {
+            id: now,
+            userId: u.id,
+            authorName: u.name,
+            content: 'Repost · ' + (post.content || ''),
+            image: post.image || null,
+            createdAt: now,
+            likes:0,
+            reactions:{'👍':0,'😂':0,'🔥':0,'🎉':0},
+            groupId: (u.groups && u.groups[0]) || null
+          };
+          posts.unshift(newPost);
+        }
+      }
+
+      save(K.POSTS, posts);
+      scheduleSyncToBackend();
+      renderHome();
+    });
+  }
+
+  function dropFloatingEmoji(emoji, clientX, clientY){
+    const shell = $('#phoneShell');
+    if(!shell) return;
+    const shellRect = shell.getBoundingClientRect();
+    const div = document.createElement('div');
+    div.className='floating-emoji';
+    div.textContent = emoji;
+    div.style.left = (clientX - shellRect.left - 8)+'px';
+    div.style.top = (clientY - shellRect.top - 8)+'px';
+    shell.appendChild(div);
+    setTimeout(()=>div.remove(), 2500);
+  }
+
+  function toggleSavePost(postId){
+    const u = getCurrentUser();
+    if(!u) return;
+    if(!u.savedPostIds) u.savedPostIds=[];
+    if(u.savedPostIds.includes(postId)){
+      u.savedPostIds = u.savedPostIds.filter(id=>id!==postId);
+    }else{
+      u.savedPostIds.push(postId);
+    }
+    upsertUser(u);
+    renderDiscover(); // update saved filter if visible
+  }
+
+  /* ===========================
+     COMPOSER
+     =========================== */
+
+  function updateComposerState(){
+    const hasText = composerInput && composerInput.value.trim().length>0;
+    const enabled = hasText || !!composerImageData;
+    if(sendBtn) sendBtn.disabled = !enabled;
+  }
+
+  function setComposerEditMode(isEditing){
+    if(!sendBtn) return;
+    sendBtn.textContent = isEditing ? 'Save' : 'Send';
+  }
+
+  function updateComposerPreview(){
+    if(!composerPreview) return;
+    const isEditing = !!editingPostId;
+    const hasImage = !!composerImageData;
+    if(isEditing || hasImage){
+      composerPreview.style.display = 'block';
+      if(isEditing && hasImage){
+        composerPreviewText.textContent = 'Editing post with image';
+      }else if(isEditing){
+        composerPreviewText.textContent = 'Editing post text';
+      }else{
+        composerPreviewText.textContent = 'Image attached';
+      }
+    }else{
+      composerPreview.style.display = 'none';
+    }
+  }
+
+  if(composerInput){
+    composerInput.addEventListener('input', ()=>{
+      updateComposerState();
+    });
+    composerInput.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        handleSendPost();
+      }
+    });
+  }
+
+  if(imgBtn && imgFileInput){
+    imgBtn.addEventListener('click', ()=>imgFileInput.click());
+
+    imgFileInput.addEventListener('change', ()=>{
+      const file = imgFileInput.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev){
+        composerImageData = ev.target.result;
+        if(composerPreviewImg) composerPreviewImg.src = composerImageData;
+        updateComposerState();
+        updateComposerPreview();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const emojiRail = $('#emojiRail');
+  if(emojiRail){
+    emojiRail.addEventListener('click', e=>{
+      const btn = e.target.closest('button[data-emoji]');
+      if(!btn || !composerInput) return;
+      const em = btn.getAttribute('data-emoji');
+      if(!composerInput.value || /\s$/.test(composerInput.value)){
+        composerInput.value += em+' ';
+      }else{
+        composerInput.value += ' '+em+' ';
+      }
+      composerInput.focus();
+      updateComposerState();
+    });
+  }
+
+  const sendButton = $('#sendBtn');
+  if(sendButton){
+    sendButton.addEventListener('click', handleSendPost);
+  }
+
+  function handleSendPost(){
+    const u = getCurrentUser();
+    if(!u || !composerInput) return;
+    const text = composerInput.value.trim();
+    if(!text && !composerImageData) return;
+    const now = Date.now();
+
+    if(editingPostId){
+      const existing = posts.find(p=>p.id===editingPostId && p.userId===u.id);
+      if(existing){
+        existing.content = text;
+        if(composerImageData !== null){
+          existing.image = composerImageData;
+        }
+      }
+      editingPostId = null;
+      setComposerEditMode(false);
+    }else{
+      const newPost = {
+        id: now,
+        userId: u.id,
+        authorName: u.name,
+        content: text,
+        image: composerImageData,
+        createdAt: now,
+        likes:0,
+        reactions:{'👍':0,'😂':0,'🔥':0,'🎉':0},
+        groupId: (u.groups && u.groups[0]) || null
+      };
+      posts.unshift(newPost);
+    }
+
+    save(K.POSTS, posts);
+    scheduleSyncToBackend();
+    composerInput.value='';
+    composerImageData=null;
+    if(imgFileInput) imgFileInput.value='';
+    updateComposerState();
+    updateComposerPreview();
+    renderHome();
+  }
+
+  /* ===========================
+     MIC PLACEHOLDER
+     =========================== */
+
+  const micBtn = document.getElementById('micBtn');
+  if(micBtn){
+    micBtn.addEventListener('click', ()=>{
+      alert('Voice posting is not wired up yet.\n\nFor now, everything you share in PLERA Live stays in this browser only — no servers, no tracking, just your local sandbox.\n\n(Once your PLERA micro-backend is ready, we can wire this to send audio notes safely.)');
+    });
+  }
+
+  /* ===========================
+     DISCOVER
+     =========================== */
+
+  function renderDiscover(){
+    const u = getCurrentUser();
+    let html = '';
+
+    html += '<div class="search-row">';
+    html += '<input id="discoverSearchInput" type="text" placeholder="Search creators, posts, groups…" value="'+escapeHtml(searchQuery)+'">';
+    html += '<select id="discoverFilterSelect" style="font-size:11px;padding:4px 6px;border-radius:999px;border:1px solid rgba(148,163,184,.7);background:#020617;color:var(--text-main);">';
+    html += '<option value="all"'+(discoverFilter==='all'?' selected':'')+'>All</option>';
+    html += '<option value="mine"'+(discoverFilter==='mine'?' selected':'')+'>My posts</option>';
+    html += '<option value="images"'+(discoverFilter==='images'?' selected':'')+'>Image posts</option>';
+    html += '<option value="saved"'+(discoverFilter==='saved'?' selected':'')+'>Saved</option>';
+    html += '</select></div>';
+
+    // Groups
+    html += '<div class="card mb-4"><div class="card-user">Groups & Communities</div><div class="card-meta">Join a corner of PLERA Live that fits your style.</div><div style="margin-top:6px;">';
+    GROUPS.forEach(g=>{
+      const joined = u && u.groups && u.groups.includes(g.id);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+      html += '<div><div style="font-size:11px;">'+escapeHtml(g.name)+'</div></div>';
+      html += '<button class="btn-small" data-group-id="'+g.id+'" data-action="toggleGroup" style="background:'+(joined?'var(--danger)':'var(--accent-soft)')+';color:#111827;">'+(joined?'Leave':'Join')+'</button>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+
+    const savedIds = (u && u.savedPostIds) ? u.savedPostIds : [];
+
+    const list = sortedPosts().filter(p=>{
+      if(discoverFilter==='mine' && p.userId!==currentUserId) return false;
+      if(discoverFilter==='images' && !p.image) return false;
+      if(discoverFilter==='saved' && !savedIds.includes(p.id)) return false;
+      if(!searchQuery) return true;
+      const author = p.userId==='seed_arella'||p.userId==='seed_regalus'
+        ? p.authorName
+        : (users.find(u2=>u2.id===p.userId)?.name || p.authorName || '');
+      const text = (p.content||'') + ' ' + author;
+      return text.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+
+    if(!list.length){
+      html += '<div class="empty-state">No matching posts yet. Try a different search or filter.</div>';
+    }else{
+      list.forEach(p=>{
+        const author = p.userId==='seed_arella'||p.userId==='seed_regalus'
+          ? p.authorName
+          : (users.find(u2=>u2.id===p.userId)?.name || p.authorName || 'Creator');
+        const initials = author ? author.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase() : 'A';
+        html += '<article class="card">';
+        html += '<div class="card-header">';
+        html += '<div class="avatar avatar-small">'+escapeHtml(initials)+'</div>';
+        html += '<div><div class="card-user">'+escapeHtml(author)+'</div>';
+        html += '<div class="card-meta">'+timeAgo(p.createdAt)+'</div></div></div>';
+        if(p.content) html += '<div class="card-body">'+escapeHtml(p.content)+'</div>';
+        if(p.image) html += '<img class="card-img" src="'+p.image+'" alt="">';
+        html += '</article>';
+      });
+    }
+
+    discoverTab.innerHTML = html;
+
+    const searchInput = $('#discoverSearchInput');
+    if(searchInput){
+      searchInput.addEventListener('input', e=>{
+        searchQuery = e.target.value;
+        renderDiscover();
+      });
+    }
+    const filterSelect = $('#discoverFilterSelect');
+    if(filterSelect){
+      filterSelect.addEventListener('change', e=>{
+        discoverFilter = e.target.value;
+        renderDiscover();
+      });
+    }
+    discoverTab.querySelectorAll('button[data-action="toggleGroup"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const gid = btn.getAttribute('data-group-id');
+        const user = getCurrentUser();
+        if(!user) return;
+        if(!user.groups) user.groups=[];
+        if(user.groups.includes(gid)){
+          user.groups = user.groups.filter(x=>x!==gid);
+        }else{
+          user.groups.push(gid);
+        }
+        upsertUser(user);
+        renderDiscover();
+        renderProfile();
+      });
+    });
+  }
+
+  /* ===========================
+     EVENTS
+     =========================== */
+
+  function renderEvents(){
+    const u = getCurrentUser();
+    let html = '';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:10px;color:var(--text-muted);">';
+    html += '<span>Plan live hangs & gallery nights.</span>';
+    html += '<button class="btn-small" id="createEventBtn" style="background:var(--accent-soft);color:#111827;">+ Create</button>';
+    html += '</div>';
+
+    if(!events.length){
+      html += '<div class="empty-state">No events yet — start one!</div>';
+    }else{
+      events.forEach(ev=>{
+        const joined = u && ev.goingIds && ev.goingIds.includes(u.id);
+        const goingCount = ev.goingIds ? ev.goingIds.length : 0;
+        html += '<div class="card" data-event-id="'+ev.id+'">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;">';
+        html += '<div><div class="card-user">'+escapeHtml(ev.title)+'</div>';
+        html += '<div class="card-meta">'+escapeHtml(ev.time)+' · '+escapeHtml(ev.location)+'</div></div>';
+        html += '<div class="badge-pill">'+goingCount+'/'+ev.capacity+' going</div>';
+        html += '</div>';
+        html += '<div class="mt-6" style="display:flex;justify-content:space-between;align-items:center;">';
+        html += '<div>'+(joined?'<span class="badge-pill" style="border-color:var(--success);color:var(--success);">Joined</span>':'<span class="card-meta">Not joined yet</span>')+'</div>';
+        html += '<div>';
+        html += '<button class="btn-small" data-action="toggleJoin" style="background:'+(joined?'var(--danger)':'var(--accent-soft)')+';color:#111827;margin-right:4px;">'+(joined?'Leave':'Join')+'</button>';
+        html += '<button class="btn-small" data-action="remind" style="background:rgba(148,163,184,.2);color:var(--text-main);">Remind</button>';
+        html += '</div></div></div>';
+      });
+    }
+
+    eventsTab.innerHTML = html;
+
+    const createBtn = $('#createEventBtn');
+    if(createBtn){
+      createBtn.addEventListener('click', ()=>{
+        eventModal.classList.remove('hidden');
+      });
+    }
+
+    eventsTab.querySelectorAll('button[data-action="toggleJoin"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = Number(btn.closest('.card').getAttribute('data-event-id'));
+        toggleEventJoin(id);
+        renderEvents();
+      });
+    });
+    eventsTab.querySelectorAll('button[data-action="remind"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = Number(btn.closest('.card').getAttribute('data-event-id'));
+        const ev = events.find(e=>e.id===id);
+        if(ev) showInAppNotification('Reminder set for: '+ev.title);
+      });
+    });
+  }
+
+  function toggleEventJoin(eventId){
+    const u = getCurrentUser();
+    if(!u) return;
+    const ev = events.find(e=>e.id===eventId);
+    if(!ev) return;
+    if(!ev.goingIds) ev.goingIds=[];
+    if(ev.goingIds.includes(u.id)){
+      ev.goingIds = ev.goingIds.filter(x=>x!==u.id);
+    }else{
+      if(ev.goingIds.length < ev.capacity) ev.goingIds.push(u.id);
+    }
+    save(K.EVENTS, events);
+    scheduleSyncToBackend();
+  }
+
+  const eventCancel = $('#eventCancel');
+  if(eventCancel){
+    eventCancel.addEventListener('click', ()=>eventModal.classList.add('hidden'));
+  }
+  const eventSave = $('#eventSave');
+  if(eventSave){
+    eventSave.addEventListener('click', ()=>{
+      const title = $('#eventTitle').value.trim();
+      const time = $('#eventTime').value.trim();
+      const loc = $('#eventLocation').value.trim();
+      const capVal = $('#eventCapacity').value;
+      let ok = true;
+      $('#eventTitleErr').textContent = '';
+      $('#eventTimeErr').textContent = '';
+      $('#eventLocationErr').textContent = '';
+      $('#eventCapacityErr').textContent = '';
+
+      if(!title){ $('#eventTitleErr').textContent='Title required'; ok=false;}
+      if(!time){ $('#eventTimeErr').textContent='Time required'; ok=false;}
+      if(!loc){ $('#eventLocationErr').textContent='Location required'; ok=false;}
+      const cap = Number(capVal);
+      if(!Number.isFinite(cap) || cap<1){ $('#eventCapacityErr').textContent='Capacity ≥ 1'; ok=false; }
+
+      if(!ok) return;
+      const u = getCurrentUser();
+      const joined = $('#eventAutoJoin').checked;
+
+      const ev = {
+        id: Date.now(),
+        title,
+        time,
+        location:loc,
+        capacity:cap,
+        goingIds: joined && u ? [u.id] : [],
+        createdBy: u ? u.id : null
+      };
+      events.unshift(ev);
+      save(K.EVENTS, events);
+      scheduleSyncToBackend();
+      eventModal.classList.add('hidden');
+      $('#eventTitle').value='';
+      $('#eventTime').value='';
+      $('#eventLocation').value='';
+      $('#eventCapacity').value='40';
+      $('#eventAutoJoin').checked=true;
+      renderEvents();
+    });
+  }
+
+  /* ===========================
+     PROFILE + THEME + TICKER ADMIN
+     =========================== */
+
+  function renderProfile(){
+    const u = getCurrentUser();
+    if(!u){
+      profileTab.innerHTML='<div class="empty-state">Sign in to edit your profile.</div>';
+      return;
+    }
+    const postsCount = posts.filter(p=>p.userId===u.id).length;
+    const joinedEvents = events.filter(ev=>ev.goingIds && ev.goingIds.includes(u.id)).length;
+    const groupsJoined = u.groups ? u.groups.length : 0;
+    const savedCount = u.savedPostIds ? u.savedPostIds.length : 0;
+
+    let html = '';
+    const initials = u.name ? u.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase() : 'U';
+
+    html += '<div class="card text-center">';
+    html += '<div class="avatar" style="margin:0 auto 4px;background:linear-gradient(135deg,#a855f7,#22c55e);">'+escapeHtml(initials)+'</div>';
+    html += '<div class="card-user">'+escapeHtml(u.name)+'</div>';
+    html += '<div class="card-meta">'+escapeHtml(u.email)+'</div>';
+    if(u.bio) html += '<div class="card-body" style="font-size:11px;">'+escapeHtml(u.bio||'')+'</div>';
+    html += '<div style="display:flex;justify-content:space-around;margin-top:4px;font-size:10px;color:var(--text-muted);">';
+    html += '<div>'+postsCount+' posts</div>';
+    html += '<div>'+joinedEvents+' events</div>';
+    html += '<div>'+groupsJoined+' groups</div>';
+    html += '<div>'+savedCount+' saved</div>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="card">';
+    html += '<div class="card-user">Edit profile</div>';
+    html += '<div class="field mt-6"><label>Name</label><input id="profileName" type="text" value="'+escapeHtml(u.name)+'"></div>';
+    html += '<div class="field"><label>Bio</label><textarea id="profileBio" rows="2" maxlength="160">'+escapeHtml(u.bio||'')+'</textarea></div>';
+    html += '<div class="field"><label>Tags (comma separated)</label><input id="profileTags" type="text" value="'+escapeHtml((u.tags||[]).join(', '))+'"></div>';
+    html += '<div class="field" style="display:flex;align-items:center;gap:4px;margin-bottom:6px;"><input id="profileNotif" type="checkbox" '+(u.notifications?'checked':'')+'>';
+    html += '<label for="profileNotif" style="margin:0;font-size:11px;color:var(--text-muted);">Enable gentle browser notifications</label></div>';
+
+    html += '<div class="field"><label>Theme</label>';
+    html += '<div>';
+    html += '<button type="button" class="pill-chip'+(theme==='cosmic'?' active':'')+'" data-theme="cosmic">Cosmic</button>';
+    html += '<button type="button" class="pill-chip'+(theme==='earth'?' active':'')+'" data-theme="earth">PLERA Earth</button>';
+    html += '</div></div>';
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">';
+    html += '<button class="btn-small" id="profileSaveBtn" style="background:var(--accent-soft);color:#111827;">Save</button>';
+    html += '<button class="btn-small" id="profileLogoutBtn" style="background:var(--danger);color:#111827;">Log out</button>';
+    html += '</div>';
+
+    html += '<div style="display:flex;justify-content:flex-end;margin-top:6px;">';
+    html += '<button class="btn-ghost" id="profileResetBtn" title="Clears PLERA Live data (accounts, posts, events, DMs, ticker, theme) from this browser only.">Reset PLERA Live on this device</button>';
+    html += '</div>';
+
+    html += '</div>';
+
+    html += '<div class="card">';
+    html += '<div class="card-user">Stream Ticker</div>';
+    html += '<div class="card-meta">One line per entry. Saved locally and used for the scrolling ticker.</div>';
+    html += '<div class="field mt-6"><textarea id="tickerEditor" rows="4">'+escapeHtml((tickerLines && tickerLines.length ? tickerLines : DEFAULT_TICKER_LINES).join('\n'))+'</textarea></div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">';
+    html += '<button class="btn-small" id="tickerResetBtn" style="background:rgba(148,163,184,.2);color:var(--text-main);">Reset to default</button>';
+    html += '<button class="btn-small" id="tickerSaveBtn" style="background:var(--accent-soft);color:#111827;">Save Ticker</button>';
+    html += '</div></div>';
+
+    profileTab.innerHTML = html;
+
+    const profileSaveBtn = $('#profileSaveBtn');
+    if(profileSaveBtn){
+      profileSaveBtn.addEventListener('click', ()=>{
+        u.name = $('#profileName').value.trim() || u.name;
+        u.bio = $('#profileBio').value.trim();
+        const tags = $('#profileTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+        u.tags = tags;
+        u.notifications = $('#profileNotif').checked;
+        upsertUser(u);
+        if(u.notifications) requestNotificationPermission();
+        renderProfile();
+        renderHome();
+      });
+    }
+
+    const profileLogoutBtn = $('#profileLogoutBtn');
+    if(profileLogoutBtn){
+      profileLogoutBtn.addEventListener('click', ()=>{
+        currentUserId = null;
+        save(K.CURRENT, currentUserId);
+        authOverlay.classList.remove('hidden');
+      });
+    }
+
+    const profileResetBtn = $('#profileResetBtn');
+    if(profileResetBtn){
+      profileResetBtn.addEventListener('click', resetPleraStorage);
+    }
+
+    profileTab.querySelectorAll('button[data-theme]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const val = btn.getAttribute('data-theme');
+        applyTheme(val);
+        profileTab.querySelectorAll('button[data-theme]').forEach(b=>{
+          b.classList.toggle('active', b.getAttribute('data-theme')===val);
+        });
+      });
+    });
+
+    const tickerSaveBtn = $('#tickerSaveBtn');
+    if(tickerSaveBtn){
+      tickerSaveBtn.addEventListener('click', ()=>{
+        const raw = $('#tickerEditor').value.split('\n').map(s=>s.trim()).filter(Boolean);
+        tickerLines = raw.length ? raw : DEFAULT_TICKER_LINES.slice();
+        save(K.TICKER, tickerLines);
+        scheduleSyncToBackend();
+        renderTicker();
+      });
+    }
+    const tickerResetBtn = $('#tickerResetBtn');
+    if(tickerResetBtn){
+      tickerResetBtn.addEventListener('click', ()=>{
+        tickerLines = DEFAULT_TICKER_LINES.slice();
+        save(K.TICKER, tickerLines);
+        scheduleSyncToBackend();
+        renderTicker();
+        $('#tickerEditor').value = tickerLines.join('\n');
+      });
+    }
+  }
+
+  /* ===========================
+     DMs
+     =========================== */
+
+  function getThreadId(contactId){
+    const u = getCurrentUser();
+    if(!u) return null;
+    return u.id+'__'+contactId;
+  }
+
+  function renderDmList(){
+    const u = getCurrentUser();
+    if(!u) return;
+    let html = '';
+    DM_CONTACTS.forEach(c=>{
+      const threadId = getThreadId(c.id);
+      const thread = dms.threads[threadId];
+      const unread = thread && thread.unread && thread.unread[u.id] || 0;
+      html += '<div class="dm-contact'+(activeDmContact===c.id?' active':'')+'" data-contact-id="'+c.id+'">';
+      html += '<div class="avatar avatar-small">'+escapeHtml(c.initials)+'</div>';
+      html += '<div style="flex:1;"><div>'+escapeHtml(c.name)+'</div>';
+      if(unread>0) html += '<div class="card-meta">'+unread+' new</div>';
+      html += '</div></div>';
+    });
+    dmList.innerHTML = html;
+    dmList.querySelectorAll('.dm-contact').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        activeDmContact = el.getAttribute('data-contact-id');
+        const uId = getCurrentUser().id;
+        const tid = getThreadId(activeDmContact);
+        if(dms.threads[tid]){
+          if(!dms.threads[tid].unread) dms.threads[tid].unread={};
+          dms.threads[tid].unread[uId]=0;
+          save(K.DMS, dms);
+          scheduleSyncToBackend();
+        }
+        renderDmList();
+        renderDmThread();
+        updateDmBadge();
+      });
+    });
+  }
+
+  function renderDmThread(){
+    const u = getCurrentUser();
+    if(!u || !activeDmContact){
+      dmMessages.innerHTML = '<div class="empty-state" style="font-size:11px;">Select an artist to start a private critique thread.</div>';
+      return;
+    }
+    const tid = getThreadId(activeDmContact);
+    const thread = dms.threads[tid] || {messages:[]};
+    let html = '';
+    thread.messages.forEach(m=>{
+      const isMe = m.from===u.id;
+      html += '<div class="dm-msg '+(isMe?'me':'them')+'">'+escapeHtml(m.text)+'</div>';
+    });
+    if(!thread.messages.length){
+      html += '<div class="empty-state" style="font-size:11px;">Start by sharing what kind of feedback you\'d like.</div>';
+    }
+    dmMessages.innerHTML = html;
+    dmMessages.scrollTop = dmMessages.scrollHeight;
+  }
+
+  function updateDmBadge(){
+    const u = getCurrentUser();
+    if(!u) return;
+    let total=0;
+    Object.values(dms.threads).forEach(t=>{
+      if(t.unread && t.unread[u.id]) total += t.unread[u.id];
+    });
+    if(total>0){
+      dmBadge.style.display='inline-block';
+      dmBadge.textContent = total;
+    }else{
+      dmBadge.style.display='none';
+    }
+  }
+
+  function ensureDmHidden(){
+    if(dmDrawer) dmDrawer.classList.add('hidden');
+  }
+
+  const dmBtn = $('#dmBtn');
+  if(dmBtn){
+    dmBtn.addEventListener('click', ()=>{
+      if(dmDrawer.classList.contains('hidden')){
+        dmDrawer.classList.remove('hidden');
+        if(!activeDmContact && DM_CONTACTS.length) activeDmContact = DM_CONTACTS[0].id;
+        renderDmList();
+        renderDmThread();
+      }else{
+        dmDrawer.classList.add('hidden');
+      }
+    });
+  }
+
+  const dmCloseBtn = $('#dmCloseBtn');
+  if(dmCloseBtn){
+    dmCloseBtn.addEventListener('click', ()=>dmDrawer.classList.add('hidden'));
+  }
+
+  const dmSendBtn = $('#dmSendBtn');
+  if(dmSendBtn){
+    dmSendBtn.addEventListener('click', sendDmMessage);
+  }
+  if(dmInput){
+    dmInput.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        sendDmMessage();
+      }
+    });
+  }
+
+  function sendDmMessage(){
+    const u = getCurrentUser();
+    if(!u || !activeDmContact || !dmInput) return;
+    const text = dmInput.value.trim();
+    if(!text) return;
+    const tid = getThreadId(activeDmContact);
+    if(!dms.threads[tid]) dms.threads[tid]={contactId:activeDmContact,messages:[],unread:{}};
+    dms.threads[tid].messages.push({from:u.id,text,ts:Date.now()});
+
+    const c = DM_CONTACTS.find(c2=>c2.id===activeDmContact);
+    save(K.DMS,dms);
+    scheduleSyncToBackend();
+    renderDmThread();
+
+    dmInput.value='';
+
+    setTimeout(()=>{
+      const reply = {from:activeDmContact,text:'Thanks for sharing — I love the direction! ✨',ts:Date.now()};
+      dms.threads[tid].messages.push(reply);
+      if(!dms.threads[tid].unread) dms.threads[tid].unread={};
+      dms.threads[tid].unread[u.id]=(dms.threads[tid].unread[u.id]||0)+1;
+      save(K.DMS,dms);
+      scheduleSyncToBackend();
+      renderDmThread();
+      updateDmBadge();
+      if(c) showInAppNotification('New DM from '+c.name);
+    }, 800+Math.random()*800);
+  }
+
+  /* ===========================
+     NOTIFICATIONS
+     =========================== */
+
+  function requestNotificationPermission(){
+    if(typeof window === 'undefined' || !('Notification' in window)) return;
+    if(Notification.permission==='default'){
+      Notification.requestPermission();
+    }
+  }
+  function showInAppNotification(msg){
+    try{
+      const u = getCurrentUser();
+      if(!u || !u.notifications) return;
+      if(typeof window === 'undefined' || !('Notification' in window)) return;
+      if(Notification.permission==='granted'){
+        new Notification('PLERA Live', {body:msg});
+      }
+    }catch(e){}
+  }
+
+  /* ===========================
+     OPTIONAL ADMIN DASHBOARD HOOKS
+     =========================== */
+
+  const adminToggle = $('#adminToggle');
+  const adminPanel = $('#adminPanel');
+  const adminCloseBtn = $('#adminCloseBtn');
+  const adminStats = $('#adminStats');
+  const adminSyncBtn = $('#adminSyncBtn');
+
+  if(adminToggle && adminPanel){
+    adminToggle.addEventListener('click', ()=>{
+      adminPanel.classList.remove('hidden');
+      refreshAdminStats();
+    });
+  }
+  if(adminCloseBtn && adminPanel){
+    adminCloseBtn.addEventListener('click', ()=>adminPanel.classList.add('hidden'));
+  }
+  if(adminSyncBtn){
+    adminSyncBtn.addEventListener('click', refreshAdminStats);
+  }
+
+  function computeLocalStats(){
+    return {
+      users: users.length,
+      posts: posts.length,
+      events: events.length,
+      dmThreads: dms && dms.threads ? Object.keys(dms.threads).length : 0
+    };
+  }
+
+  async function refreshAdminStats(){
+    if(!adminStats) return;
+    const local = computeLocalStats();
+    let html = '';
+    html += '<div class="admin-metric-row"><span>Local users</span><span>'+local.users+'</span></div>';
+    html += '<div class="admin-metric-row"><span>Local posts</span><span>'+local.posts+'</span></div>';
+    html += '<div class="admin-metric-row"><span>Local events</span><span>'+local.events+'</span></div>';
+    html += '<div class="admin-metric-row"><span>Local DM threads</span><span>'+local.dmThreads+'</span></div>';
+
+    let extra = '';
+    if(BACKEND.enabled && typeof fetch === 'function'){
+      try{
+        const res = await fetch(backendBase() + '/state');
+        if(res.ok){
+          const data = await res.json();
+          const remote = {
+            users: Array.isArray(data.users)?data.users.length:0,
+            posts: Array.isArray(data.posts)?data.posts.length:0,
+            events: Array.isArray(data.events)?data.events.length:0,
+            dmThreads: data.dms && data.dms.threads ? Object.keys(data.dms.threads).length : 0
+          };
+          extra += '<div class="admin-metric-separator"></div>';
+          extra += '<div class="admin-metric-row admin-remote"><span>Global users</span><span>'+remote.users+'</span></div>';
+          extra += '<div class="admin-metric-row admin-remote"><span>Global posts</span><span>'+remote.posts+'</span></div>';
+          extra += '<div class="admin-metric-row admin-remote"><span>Global events</span><span>'+remote.events+'</span></div>';
+          extra += '<div class="admin-metric-row admin-remote"><span>Global DM threads</span><span>'+remote.dmThreads+'</span></div>';
+        }else{
+          extra += '<div class="admin-metric-note">Backend reachable but /state returned '+res.status+'.</div>';
+        }
+      }catch(e){
+        extra += '<div class="admin-metric-note">Backend not reachable — showing local-only stats.</div>';
+      }
+    }else{
+      extra += '<div class="admin-metric-note">Backend sync disabled (local sandbox only).</div>';
+    }
+
+    adminStats.innerHTML = html + extra;
+  }
+
+  /* ===========================
+     MATRIX & TABS
+     =========================== */
+
+  const matrixBtn = $('#matrixBtn');
+  const matrixOverlay = $('#matrixOverlay');
+  const matrixCloseBtn = $('#matrixCloseBtn');
+  if(matrixBtn && matrixOverlay){
+    matrixBtn.addEventListener('click', ()=>matrixOverlay.classList.remove('hidden'));
+  }
+  if(matrixCloseBtn && matrixOverlay){
+    matrixCloseBtn.addEventListener('click', ()=>matrixOverlay.classList.add('hidden'));
+  }
+
+  $$('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const tab = btn.getAttribute('data-tab');
+      switchTab(tab);
+    });
+  });
+
+  function switchTab(tab){
+    activeTab = tab;
+    $$('.tab-btn').forEach(b=>{
+      b.classList.toggle('tab-btn-active', b.getAttribute('data-tab')===tab);
+    });
+    $('#tab-home').classList.toggle('hidden', tab!=='home');
+    $('#tab-discover').classList.toggle('hidden', tab!=='discover');
+    $('#tab-events').classList.toggle('hidden', tab!=='events');
+    $('#tab-profile').classList.toggle('hidden', tab!=='profile');
+    if(tab==='home') renderHome();
+    else if(tab==='discover') renderDiscover();
+    else if(tab==='events') renderEvents();
+    else if(tab==='profile') renderProfile();
+  }
+
+  /* ===========================
+     BOOT
+     =========================== */
+
+  function renderAll(){
+    switchTab(activeTab);
+    updateDmBadge();
+    updateComposerState();
+    updateComposerPreview();
+  }
+
+  function bootLocalApp(){
+    if(currentUserId && getCurrentUser()){
+      authOverlay.classList.add('hidden');
+      ensureSeedPosts();
+      ensureDmHidden();
+    }else{
+      authOverlay.classList.remove('hidden');
+    }
+    renderAll();
+  }
+
+  if(BACKEND.enabled && typeof fetch === 'function'){
+    syncFromBackend().finally(bootLocalApp);
+  }else{
+    bootLocalApp();
+  }
+
+})();
+</script>
+</body>
+</html>
