@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PLERA Live · Admin Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+  :root{
+    --bg:#050508;
+    --panel:#101018;
+    --panel-soft:#181824;
+    --ink:#f5f5f5;
+    --muted:#9ca3af;
+    --accent:#facc6b;
+    --accent-soft:#bef264;
+    --danger:#fb7185;
+    --radius:14px;
+    --shadow:0 20px 50px rgba(0,0,0,.6);
+    --border:1px solid rgba(148,163,184,.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:
+      radial-gradient(circle at 20% 0%, #1f2937 0, transparent 55%),
+      radial-gradient(circle at 80% 100%, #4b5563 0, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+  }
+  .shell{
+    width:100%;
+    max-width:880px;
+    min-height:480px;
+    background:radial-gradient(circle at top,#020617,var(--panel));
+    border-radius:22px;
+    border:var(--border);
+    box-shadow:var(--shadow);
+    padding:18px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .hdr{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .hdr-title{
+    font-size:18px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .hdr-sub{
+    font-size:11px;
+    color:var(--muted);
+  }
+  .hdr-right{
+    font-size:10px;
+    text-align:right;
+    color:var(--muted);
+  }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    padding:3px 7px;
+    border-radius:999px;
+    border:1px solid rgba(250,204,21,.7);
+    font-size:10px;
+    margin-top:3px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:2fr 3fr;
+    gap:10px;
+    margin-top:6px;
+    flex:1;
+  }
+  .card{
+    background:var(--panel-soft);
+    border-radius:16px;
+    border:var(--border);
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .card-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .card-title span.main{
+    color:var(--accent-soft);
+  }
+  label{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:2px;
+  }
+  input{
+    width:100%;
+    padding:6px 8px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.6);
+    background:#020617;
+    color:var(--ink);
+    font-size:11px;
+    outline:none;
+  }
+  input::placeholder{color:#6b7280;}
+  .btn{
+    border-radius:999px;
+    border:none;
+    padding:7px 12px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .btn-main{
+    background:linear-gradient(135deg,#facc6b,#bef264);
+    color:#111827;
+  }
+  .btn-ghost{
+    background:transparent;
+    border:1px solid rgba(148,163,184,.6);
+    color:var(--muted);
+  }
+  .row{
+    display:flex;
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .row > div{flex:1;}
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  .stat-pill{
+    padding:8px 10px;
+    border-radius:12px;
+    background:#020617;
+    border:1px solid rgba(148,163,184,.45);
+    font-size:11px;
+  }
+  .stat-label{
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    margin-bottom:4px;
+  }
+  .stat-value{
+    font-size:18px;
+  }
+  .list{
+    font-size:11px;
+    max-height:180px;
+    overflow-y:auto;
+  }
+  .list-item{
+    display:flex;
+    justify-content:space-between;
+    padding:3px 0;
+    border-bottom:1px dashed rgba(55,65,81,.8);
+  }
+  .list-item:last-child{border-bottom:none;}
+  .list-label{color:var(--muted);}
+  .list-value{color:var(--accent-soft);}
+  .status{
+    font-size:11px;
+    color:var(--muted);
+    min-height:16px;
+  }
+  .status.ok{color:var(--accent-soft);}
+  .status.err{color:var(--danger);}
+  @media (max-width:720px){
+    .shell{height:auto;min-height:0;}
+    .grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">PLERA LIVE</div>
+      <div class="hdr-sub">Admin dashboard · read-only stats across browsers</div>
+    </div>
+    <div class="hdr-right">
+      <div>Micro-backend: <span id="hdrBackendLabel">not connected</span></div>
+      <div class="badge">Admin-only · keep this URL private</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Connection / controls -->
+    <div class="card">
+      <div class="card-title">
+        <span class="main">Connection</span>
+        <span id="statusChip">Idle</span>
+      </div>
+      <div class="row">
+        <div>
+          <label for="backendUrl">Backend URL</label>
+          <input id="backendUrl" type="text"
+                 placeholder="http://127.0.0.1:8000"
+                 value="http://127.0.0.1:8000">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="adminKey">Admin key (PLERA_ADMIN_KEY)</label>
+          <input id="adminKey" type="password" placeholder="change-me">
+        </div>
+      </div>
+      <div class="row" style="margin-top:4px;">
+        <button class="btn btn-main" id="btnLoad">Load summary</button>
+        <button class="btn btn-ghost" id="btnHealth">Ping /health</button>
+      </div>
+      <div class="status" id="statusText"></div>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="card">
+      <div class="card-title"><span class="main">Summary</span></div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-pill">
+          <div class="stat-label">Users</div>
+          <div class="stat-value" id="statUsers">–</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">Posts</div>
+          <div class="stat-value" id="statPosts">–</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">Events</div>
+          <div class="stat-value" id="statEvents">–</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">DM Messages</div>
+          <div class="stat-value" id="statDmMessages">–</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lower row: most active + posts per group -->
+  <div class="grid" style="margin-top:0;">
+    <div class="card">
+      <div class="card-title"><span class="main">Most active users</span></div>
+      <div class="list" id="listUsers">
+        <div class="list-item"><span class="list-label">No data yet.</span><span></span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="main">Posts by group</span></div>
+      <div class="list" id="listGroups">
+        <div class="list-item"><span class="list-label">No data yet.</span><span></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const backendUrlInput = document.getElementById('backendUrl');
+  const adminKeyInput   = document.getElementById('adminKey');
+  const btnLoad         = document.getElementById('btnLoad');
+  const btnHealth       = document.getElementById('btnHealth');
+  const statusText      = document.getElementById('statusText');
+  const statusChip      = document.getElementById('statusChip');
+  const hdrBackendLabel = document.getElementById('hdrBackendLabel');
+
+  const statUsers       = document.getElementById('statUsers');
+  const statPosts       = document.getElementById('statPosts');
+  const statEvents      = document.getElementById('statEvents');
+  const statDmMessages  = document.getElementById('statDmMessages');
+  const listUsers       = document.getElementById('listUsers');
+  const listGroups      = document.getElementById('listGroups');
+
+  // Remember backend URL for convenience (but NOT the admin key)
+  const LS_KEY_URL = 'plera_admin_backend_url_v1';
+
+  function setStatus(msg, ok){
+    statusText.textContent = msg || '';
+    statusText.classList.toggle('ok', !!ok);
+    statusText.classList.toggle('err', ok === false);
+    statusChip.textContent = ok ? 'OK' : (ok === false ? 'Error' : 'Idle');
+  }
+
+  function getBaseURL(){
+    return backendUrlInput.value.trim().replace(/\/+$/,'');
+  }
+
+  function persistBackendUrl(base){
+    try{
+      if(base) localStorage.setItem(LS_KEY_URL, base);
+    }catch(e){
+      // ignore storage errors
+    }
+  }
+
+  // Hydrate backend URL from localStorage on load
+  (function hydrateSettings(){
+    try{
+      const stored = localStorage.getItem(LS_KEY_URL);
+      if(stored){
+        backendUrlInput.value = stored;
+        hdrBackendLabel.textContent = stored;
+      }
+    }catch(e){
+      // ignore
+    }
+  })();
+
+  async function pingHealth(){
+    const base = getBaseURL();
+    if(!base){
+      setStatus('Enter a backend URL first.', false);
+      return;
+    }
+    setStatus('Pinging /health …');
+    try{
+      const res = await fetch(base + '/health');
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+      hdrBackendLabel.textContent = base;
+      persistBackendUrl(base);
+      setStatus('Health: ' + (data.status || 'ok'), true);
+    }catch(err){
+      console.error(err);
+      setStatus('Health check failed: ' + err.message, false);
+    }
+  }
+
+  async function loadSummary(){
+    const base = getBaseURL();
+    const key  = adminKeyInput.value.trim();
+    if(!base || !key){
+      setStatus('Backend URL and admin key are required.', false);
+      return;
+    }
+    setStatus('Loading /admin/summary …');
+    try{
+      const url = base + '/admin/summary?admin_key=' + encodeURIComponent(key);
+      const res = await fetch(url);
+
+      if(res.status === 403){
+        throw new Error('Forbidden (admin key incorrect)');
+      }
+      if(!res.ok){
+        throw new Error('HTTP ' + res.status);
+      }
+
+      const data = await res.json();
+
+      hdrBackendLabel.textContent = base;
+      persistBackendUrl(base);
+
+      statUsers.textContent      = data.total_users ?? '0';
+      statPosts.textContent      = data.total_posts ?? '0';
+      statEvents.textContent     = data.total_events ?? '0';
+      statDmMessages.textContent = data.total_dm_messages ?? '0';
+
+      // Most active users
+      listUsers.innerHTML = '';
+      if(!data.most_active_users || !data.most_active_users.length){
+        listUsers.innerHTML =
+          '<div class="list-item"><span class="list-label">No posts yet.</span><span></span></div>';
+      }else{
+        data.most_active_users.forEach(u=>{
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.innerHTML =
+            '<span class="list-label">'+
+            (u.name || 'Unknown')+
+            '</span><span class="list-value">'+
+            (u.postCount || 0)+' posts</span>';
+          listUsers.appendChild(div);
+        });
+      }
+
+      // Posts by group
+      listGroups.innerHTML = '';
+      const groups = data.posts_by_group || {};
+      const keys = Object.keys(groups);
+      if(!keys.length){
+        listGroups.innerHTML =
+          '<div class="list-item"><span class="list-label">No group info yet.</span><span></span></div>';
+      }else{
+        keys.forEach(gid=>{
+          const count = groups[gid];
+          const label = gid === 'ungrouped' ? 'Ungrouped' : gid;
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.innerHTML =
+            '<span class="list-label">'+label+
+            '</span><span class="list-value">'+count+'</span>';
+          listGroups.appendChild(div);
+        });
+      }
+
+      setStatus('Summary loaded.', true);
+    }catch(err){
+      console.error(err);
+      setStatus('Failed to load summary: ' + err.message, false);
+    }
+  }
+
+  btnHealth.addEventListener('click', pingHealth);
+  btnLoad.addEventListener('click', loadSummary);
+
+  // Optional: press Enter in adminKey to load summary quickly
+  adminKeyInput.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      loadSummary();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
