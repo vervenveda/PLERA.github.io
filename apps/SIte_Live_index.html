@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SIte Live — verVeNVeda</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+:root{
+  --bg:#050509;
+  --panel:#0b0b12;
+  --card:#111827;
+  --accent:#3b5cff;
+  --accent-soft:#818cf8;
+  --ink:#f9fafb;
+  --muted:#9ca3af;
+  --border:#1f2937;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:radial-gradient(circle at top,#020617,#000);
+  color:var(--ink);
+}
+.hidden{display:none !important;}
+
+#app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding:10px;
+  gap:8px;
+}
+
+/* Top bar */
+#topBar{
+  position:sticky;
+  top:4px;
+  z-index:20;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(15,23,42,.92);
+  border:1px solid rgba(148,163,184,.6);
+  backdrop-filter:blur(12px);
+}
+#topBar .left, #topBar .right{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.logo{
+  font-size:.8rem;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-weight:600;
+}
+.logo span{
+  opacity:.8;
+  font-weight:400;
+}
+#handleBadge{
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+/* Controls */
+select,button{
+  font-size:.8rem;
+  border-radius:999px;
+  border:1px solid rgba(148,163,184,.7);
+  background:#020617;
+  color:var(--ink);
+  padding:6px 10px;
+  cursor:pointer;
+}
+button{
+  background:#111827;
+}
+button:hover{
+  border-color:var(--accent-soft);
+}
+button.primary{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+button.small{
+  padding:5px 9px;
+  font-size:.75rem;
+}
+
+/* Status */
+#statusMsg{
+  font-size:.75rem;
+  color:var(--accent-soft);
+  padding:0 2px;
+}
+
+/* Main layout */
+#main{
+  flex:1;
+  min-height:0;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  margin-top:2px;
+}
+#pageNav{
+  flex:0 0 150px;
+  max-height:calc(100vh - 110px);
+  overflow:auto;
+  padding:8px;
+  border-radius:14px;
+  background:rgba(15,23,42,.94);
+  border:1px solid rgba(148,163,184,.6);
+}
+.pageBtn{
+  width:100%;
+  text-align:left;
+  padding:6px 9px;
+  margin-bottom:6px;
+  border-radius:999px;
+  border:1px solid rgba(148,163,184,.7);
+  background:transparent;
+  color:var(--ink);
+  font-size:.78rem;
+}
+.pageBtn.active{
+  background:var(--accent);
+  border-color:var(--accent);
+}
+.pageBtn:last-child{margin-bottom:0;}
+
+/* Live canvas */
+#liveCanvas{
+  flex:1;
+  position:relative;
+  border-radius:18px;
+  background:#f9fafb;
+  color:#111827;
+  min-height:60vh;
+  max-height:calc(100vh - 110px);
+  overflow:auto;
+  padding:10px;
+  border:1px solid rgba(148,163,184,.6);
+  box-shadow:0 18px 40px rgba(15,23,42,.7);
+}
+.pageInner{
+  position:relative;
+  max-width:980px;
+  margin:0 auto;
+  padding:22px 22px 40px;
+}
+.liveBlock{
+  margin-bottom:12px;
+}
+.liveBlock:last-child{
+  margin-bottom:0;
+}
+.liveBlock > *{
+  width:100%;
+}
+
+/* Free-position blocks */
+.liveFreeWrap{
+  position:absolute;
+  border-radius:14px;
+  background:#ffffff;
+  overflow:hidden;
+  box-shadow:0 14px 32px rgba(15,23,42,.35);
+}
+.liveFreeWrap > *{
+  width:100%;
+  height:100%;
+}
+
+/* Content styles */
+#liveCanvas button{
+  background:#111827;
+  color:#f9fafb;
+  border-radius:999px;
+  padding:7px 14px;
+  border:1px solid rgba(15,23,42,.85);
+  cursor:pointer;
+  font-size:.82rem;
+}
+#liveCanvas button:hover{
+  background:#1f2937;
+}
+#liveCanvas .section{
+  border-radius:14px;
+  border:1px solid rgba(209,213,219,.9);
+  padding:18px;
+}
+#liveCanvas .embedWrap{
+  border-radius:14px;
+  border:1px dashed rgba(148,163,184,.7);
+  padding:14px;
+  background:#f9fafb;
+}
+
+/* JSON panel */
+#jsonPanel{
+  margin-top:8px;
+  padding:10px;
+  border-radius:14px;
+  background:rgba(15,23,42,.94);
+  border:1px solid rgba(148,163,184,.7);
+}
+#jsonPanelHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+#jsonPanelHeader .title{
+  font-size:.8rem;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--muted);
+}
+#jsonInput{
+  width:100%;
+  min-height:120px;
+  border-radius:10px;
+  border:1px solid rgba(148,163,184,.7);
+  background:#020617;
+  color:#e5e7eb;
+  padding:6px;
+  font-size:.75rem;
+  font-family:ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  resize:vertical;
+}
+#jsonButtons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:6px;
+}
+#jsonStatus{
+  margin-top:4px;
+  font-size:.75rem;
+}
+#jsonStatus.info{color:var(--accent-soft);}
+#jsonStatus.ok{color:#22c55e;}
+#jsonStatus.error{color:#f97373;}
+
+/* Small screens */
+@media(max-width:800px){
+  #main{
+    flex-direction:column;
+  }
+  #pageNav{
+    flex:0 0 auto;
+    display:flex;
+    flex-wrap:wrap;
+    max-height:none;
+  }
+  .pageBtn{
+    width:auto;
+    padding-inline:10px;
+  }
+  #liveCanvas{
+    max-height:none;
+  }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topBar">
+    <div class="left">
+      <div class="logo">SIte <span>Live</span></div>
+      <div id="handleBadge">Handle: (local-only)</div>
+    </div>
+    <div class="right">
+      <select id="langSelect"></select>
+      <button id="btnShowJson" class="small">Developer JSON</button>
+    </div>
+  </div>
+
+  <div id="statusMsg">Waiting for a SIte publish JSON…</div>
+
+  <div id="main">
+    <div id="pageNav"></div>
+    <div id="liveCanvas">
+      <div class="pageInner">
+        <h2 style="margin-top:0;">Welcome to SIte Live</h2>
+        <p style="font-size:.9rem;line-height:1.5;">
+          When your SIte Alpha builder publishes a layout, this viewer renders it as a real,
+          live page. In this demo, you can paste a JSON blob from your SIte Alpha
+          <b>Publish</b> panel into the Developer JSON area below and click
+          <b>Render This Site</b>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Developer JSON Panel -->
+  <section id="jsonPanel" class="hidden">
+    <div id="jsonPanelHeader">
+      <div class="title">Developer JSON</div>
+      <div style="font-size:.7rem;color:var(--muted);">
+        Paste the publish payload from SIte Alpha. Your snapshot stays in this browser only.
+      </div>
+    </div>
+    <textarea id="jsonInput" placeholder='Paste the JSON from "Publish" here…'></textarea>
+    <div id="jsonButtons">
+      <button id="btnLoadJson" class="primary small">Render This Site</button>
+      <button id="btnSaveJson" class="small">Save Snapshot In This Browser</button>
+      <button id="btnClearJson" class="small">Clear Snapshot</button>
+    </div>
+    <div id="jsonStatus" class="info"></div>
+  </section>
+</div>
+
+<script>
+/*
+  SIte Live Viewer
+  ----------------
+  • If window.SITE_PUBLISH_DATA exists, it loads that automatically.
+  • Otherwise, it looks for a stored snapshot in localStorage.
+  • If nothing is found, it asks you to paste JSON from SIte Alpha.
+*/
+(function(){
+  "use strict";
+
+  const LIVE_STORAGE_KEY = "SITE_LIVE_LAST_V1";
+  const $ = (id)=>document.getElementById(id);
+
+  let payload = null; // original publish payload (handle + site)
+  let site = null;    // resolved site object
+  let activePageId = null;
+  let activeLang = null;
+
+  function safeParse(str){
+    try{ return JSON.parse(str); }
+    catch(e){ return null; }
+  }
+
+  function setStatus(msg){
+    const el = $("statusMsg");
+    if(!el) return;
+    el.textContent = msg || "";
+  }
+
+  function setJsonStatus(msg, kind){
+    const el = $("jsonStatus");
+    if(!el) return;
+    el.textContent = msg || "";
+    el.className = "info";
+    if(kind === "ok") el.className = "ok";
+    if(kind === "error") el.className = "error";
+  }
+
+  function showJsonPanel(show){
+    const panel = $("jsonPanel");
+    if(!panel) return;
+    panel.classList.toggle("hidden", !show);
+  }
+
+  function saveSnapshot(obj){
+    if(!window.localStorage) return;
+    try{
+      localStorage.setItem(LIVE_STORAGE_KEY, JSON.stringify(obj));
+    }catch(e){}
+  }
+
+  function prefillJsonFromStorage(){
+    if(!window.localStorage) return;
+    const snap = localStorage.getItem(LIVE_STORAGE_KEY);
+    if(!snap) return;
+    const textarea = $("jsonInput");
+    if(textarea) textarea.value = snap;
+  }
+
+  function usePayload(obj, fromInline){
+    payload = obj;
+    site = obj && obj.site ? obj.site : obj;
+    if(!site || !site.pages || !site.pages.length){
+      setStatus("JSON loaded, but no pages were found.");
+      return;
+    }
+
+    if(window.localStorage){
+      saveSnapshot(obj);
+    }
+
+    const langs = site.languages && site.languages.list ? site.languages.list : [];
+    const defCode = (site.languages && site.languages.default) ||
+                    (langs[0] && langs[0].code) || "en";
+    activeLang = (site.languages && site.languages.active) || defCode;
+    activePageId = site.pages[0].id;
+
+    renderHandleBadge();
+    renderLangSelect();
+    renderPageNav();
+    renderPage();
+
+    if(fromInline){
+      setStatus("Loaded site from server-provided data (inline JSON).");
+    }else{
+      setStatus("Loaded site from snapshot in this browser.");
+    }
+  }
+
+  function renderHandleBadge(){
+    const el = $("handleBadge");
+    if(!el) return;
+    const handle = (payload && payload.handle) || "(local-only)";
+    const hint =
+      payload && payload.meta && payload.meta.liveUrlHint
+        ? " — " + payload.meta.liveUrlHint
+        : "";
+    el.textContent = "Handle: " + handle + hint;
+  }
+
+  function renderLangSelect(){
+    const sel = $("langSelect");
+    if(!sel || !site) return;
+    const langs = site.languages && site.languages.list ? site.languages.list : [];
+    sel.innerHTML = "";
+    langs.forEach(l=>{
+      const opt = document.createElement("option");
+      opt.value = l.code;
+      opt.textContent = l.name + " (" + l.code.toUpperCase() + ")";
+      if(l.code === activeLang) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function getCurrentLang(){
+    if(!site || !site.languages) return activeLang || "en";
+    const langs = site.languages.list || [];
+    const exists = langs.some(l=>l.code === activeLang);
+    if(!exists){
+      activeLang = site.languages.default ||
+        (langs[0] && langs[0].code) || "en";
+    }
+    return activeLang;
+  }
+
+  function getText(block, lang){
+    const t = block.t || {};
+    const def = (site.languages && site.languages.default) || lang;
+    const candidate = (typeof t[lang] === "string" && t[lang].trim()!=="")
+      ? t[lang]
+      : (typeof t[def] === "string" ? t[def] : "");
+    return candidate || "";
+  }
+
+  function applyStyle(block, el){
+    if(!block || !el) return;
+    const st = block.style || {};
+    if(block.type === "section"){
+      el.style.backgroundColor = st.bgColor || "#ffffff";
+      el.style.padding =
+        (typeof st.padding === "number" ? st.padding : 22) + "px";
+      return;
+    }
+    if(block.type === "image"){
+      const filters = st.filters || {};
+      const br = typeof filters.brightness === "number" ? filters.brightness : 1;
+      const ct = typeof filters.contrast === "number"   ? filters.contrast   : 1;
+      const sa = typeof filters.saturate === "number"   ? filters.saturate   : 1;
+      el.style.filter =
+        "brightness(" + br + ") contrast(" + ct + ") saturate(" + sa + ")";
+      return;
+    }
+    if(st.fontSize)   el.style.fontSize   = st.fontSize + "px";
+    if(st.color)      el.style.color      = st.color;
+    if(st.fontFamily) el.style.fontFamily = st.fontFamily;
+    if(st.textAlign)  el.style.textAlign  = st.textAlign;
+    if(st.bgColor)    el.style.backgroundColor = st.bgColor;
+  }
+
+  function renderPageNav(){
+    const nav = $("pageNav");
+    if(!nav || !site) return;
+    nav.innerHTML = "";
+    site.pages.forEach(p=>{
+      const btn = document.createElement("button");
+      btn.className = "pageBtn" + (p.id === activePageId ? " active" : "");
+      btn.textContent = p.title || "Page";
+      btn.addEventListener("click", ()=>{
+        activePageId = p.id;
+        renderPageNav();
+        renderPage();
+      });
+      nav.appendChild(btn);
+    });
+  }
+
+  function createBlockContent(block, lang){
+    let el;
+    if(block.type === "text"){
+      el = document.createElement("div");
+      el.textContent = getText(block, lang);
+      applyStyle(block, el);
+    }else if(block.type === "button"){
+      el = document.createElement("button");
+      el.textContent = getText(block, lang);
+      applyStyle(block, el);
+      el.addEventListener("click", e=>{
+        e.preventDefault();
+        handleLiveButtonClick(block);
+      });
+    }else if(block.type === "image"){
+      el = document.createElement("img");
+      el.src = block.src || "https://via.placeholder.com/900x260";
+      el.alt = "";
+      el.style.width = "100%";
+      el.style.height = "100%";
+      el.style.objectFit = "cover";
+      el.style.borderRadius = "12px";
+      applyStyle(block, el);
+    }else if(block.type === "embed"){
+      el = document.createElement("div");
+      el.className = "embedWrap";
+      el.innerHTML = getText(block, lang);
+    }else if(block.type === "section"){
+      el = document.createElement("div");
+      el.textContent = getText(block, lang);
+      applyStyle(block, el);
+    }else{
+      return null;
+    }
+    return el;
+  }
+
+  function handleLiveButtonClick(block){
+    const link = block.link || {};
+    if(!link.type || link.type === "none") return;
+
+    if(link.type === "page" && link.pageId && site && site.pages){
+      const target = site.pages.find(p=>p.id === link.pageId);
+      if(target){
+        activePageId = target.id;
+        renderPageNav();
+        renderPage();
+      }
+      return;
+    }
+    if(link.type === "url" && link.url){
+      if(link.url === "#top"){
+        window.scrollTo({top:0, behavior:"smooth"});
+      }else{
+        window.open(link.url, "_blank");
+      }
+    }
+  }
+
+  function renderPage(){
+    const canvas = $("liveCanvas");
+    if(!canvas || !site) return;
+    const page = site.pages.find(p=>p.id === activePageId) || site.pages[0];
+    if(!page) return;
+    const lang = getCurrentLang();
+
+    const bgCol = page.bgColor || "#ffffff";
+    const bgImg = page.bgImage || "";
+    canvas.style.backgroundColor = bgCol;
+    if(bgImg){
+      canvas.style.backgroundImage = "url(" + bgImg + ")";
+      canvas.style.backgroundSize = "cover";
+      canvas.style.backgroundPosition = "center center";
+    }else{
+      canvas.style.backgroundImage = "none";
+    }
+
+    canvas.innerHTML = "";
+    const inner = document.createElement("div");
+    inner.className = "pageInner";
+    canvas.appendChild(inner);
+
+    page.blocks.forEach(block=>{
+      const hasPos = !!block.pos;
+      if(hasPos){
+        const wrap = document.createElement("div");
+        wrap.className = "liveFreeWrap";
+        const pos = block.pos || {};
+        wrap.style.left   = (pos.x || 0) + "px";
+        wrap.style.top    = (pos.y || 0) + "px";
+        wrap.style.width  = (pos.w || 240) + "px";
+        wrap.style.height = (pos.h || 80) + "px";
+        const content = createBlockContent(block, lang);
+        if(content){
+          if(block.type === "section") content.classList.add("section");
+          wrap.appendChild(content);
+          canvas.appendChild(wrap);
+        }
+      }else{
+        const box = document.createElement("div");
+        box.className = "liveBlock";
+        const content = createBlockContent(block, lang);
+        if(content){
+          if(block.type === "section") content.classList.add("section");
+          box.appendChild(content);
+          inner.appendChild(box);
+        }
+      }
+    });
+  }
+
+  function wireUi(){
+    const langSel = $("langSelect");
+    if(langSel){
+      langSel.addEventListener("change", ()=>{
+        activeLang = langSel.value;
+        renderPage();
+      });
+    }
+    const btnJson = $("btnShowJson");
+    if(btnJson){
+      btnJson.addEventListener("click", ()=>{
+        const panel = $("jsonPanel");
+        const willShow = panel.classList.contains("hidden");
+        showJsonPanel(willShow);
+        btnJson.textContent = willShow ? "Hide JSON Panel" : "Developer JSON";
+      });
+    }
+
+    const jsonInput = $("jsonInput");
+    const btnLoad = $("btnLoadJson");
+    const btnSave = $("btnSaveJson");
+    const btnClear= $("btnClearJson");
+
+    if(btnLoad && jsonInput){
+      btnLoad.addEventListener("click", ()=>{
+        const text = jsonInput.value.trim();
+        if(!text){
+          setJsonStatus("Paste JSON first.", "error");
+          return;
+        }
+        const obj = safeParse(text);
+        if(!obj){
+          setJsonStatus("Could not parse JSON.", "error");
+          return;
+        }
+        usePayload(obj, false);
+        setJsonStatus("JSON loaded into viewer.", "ok");
+      });
+    }
+    if(btnSave && jsonInput){
+      btnSave.addEventListener("click", ()=>{
+        const text = jsonInput.value.trim();
+        if(!text){
+          setJsonStatus("Nothing to save.", "error");
+          return;
+        }
+        if(!window.localStorage){
+          setJsonStatus("Storage not available in this browser.", "error");
+          return;
+        }
+        const obj = safeParse(text);
+        if(!obj){
+          setJsonStatus("Cannot save invalid JSON.", "error");
+          return;
+        }
+        saveSnapshot(obj);
+        setJsonStatus("Snapshot saved in this browser.", "ok");
+      });
+    }
+    if(btnClear){
+      btnClear.addEventListener("click", ()=>{
+        if(!window.localStorage){
+          setJsonStatus("No storage to clear.", "error");
+          return;
+        }
+        localStorage.removeItem(LIVE_STORAGE_KEY);
+        setJsonStatus("Snapshot cleared from this browser.", "ok");
+      });
+    }
+  }
+
+  function detectInitial(){
+    // 1) Server-provided inline JSON
+    if(window.SITE_PUBLISH_DATA){
+      usePayload(window.SITE_PUBLISH_DATA, true);
+      return;
+    }
+    // 2) Snapshot in this browser
+    if(window.localStorage){
+      const snap = localStorage.getItem(LIVE_STORAGE_KEY);
+      if(snap){
+        const obj = safeParse(snap);
+        if(obj){
+          usePayload(obj, false);
+          prefillJsonFromStorage();
+          return;
+        }
+      }
+    }
+    // 3) Ask user to paste JSON
+    showJsonPanel(true);
+    setStatus("Paste a SIte publish JSON payload to render this page.");
+    prefillJsonFromStorage();
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    wireUi();
+    detectInitial();
+  });
+})();
+</script>
+</body>
+</html>
