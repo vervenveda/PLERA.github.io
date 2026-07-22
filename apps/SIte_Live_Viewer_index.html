@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SIte Live Viewer v0.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+:root{
+  --bg:#02030b;
+  --panel:#ffffff;
+  --ink:#111;
+  --muted:#666;
+  --accent:#3b5cff;
+  --ok:#1f8f4e;
+  --warn:#b7791f;
+  --bad:#c0392b;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:radial-gradient(circle at top,#050a1a,#000);
+  color:#eee;
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:16px;
+}
+#app{
+  width:100%;
+  max-width:1220px;
+  background:rgba(9,10,20,0.96);
+  border-radius:18px;
+  border:1px solid rgba(59,92,255,0.45);
+  box-shadow:0 18px 40px rgba(0,0,0,0.6);
+  padding:16px 18px 20px;
+  display:grid;
+  grid-template-columns:360px 1fr;
+  gap:16px;
+}
+@media(max-width:980px){
+  #app{grid-template-columns:1fr;}
+}
+h1{
+  margin:0 0 4px;
+  font-size:20px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#fff;
+}
+.sub{
+  margin:0 0 10px;
+  font-size:12px;
+  color:#9ca3af;
+}
+label{
+  font-size:12px;
+  color:#d1d5db;
+}
+textarea{
+  width:100%;
+  min-height:150px;
+  border-radius:12px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#e5e7eb;
+  padding:8px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size:11px;
+  resize:vertical;
+}
+button{
+  padding:7px 12px;
+  border:none;
+  border-radius:999px;
+  font-size:12px;
+  cursor:pointer;
+}
+button.primary{
+  background:var(--accent);
+  color:#fff;
+}
+button.secondary{
+  background:#111827;
+  color:#e5e7eb;
+}
+button.ghost{
+  background:transparent;
+  color:#9ca3af;
+  border:1px solid #374151;
+}
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 9px;
+  border-radius:999px;
+  font-size:11px;
+  border:1px solid #374151;
+  background:#020617;
+  color:#e5e7eb;
+}
+.badge-ok{
+  border-color:rgba(31,143,78,0.5);
+  color:#6ee7b7;
+}
+.badge-warn{
+  border-color:rgba(183,121,31,0.5);
+  color:#facc15;
+}
+.badge-bad{
+  border-color:rgba(192,57,43,0.6);
+  color:#fca5a5;
+}
+
+#status{
+  margin-top:6px;
+  font-size:11px;
+  min-height:14px;
+}
+#status.ok{ color:#6ee7b7; }
+#status.warn{ color:#facc15; }
+#status.bad{ color:#fca5a5; }
+
+#viewerCard{
+  background:#f9fafb;
+  border-radius:14px;
+  padding:10px 10px 12px;
+  color:#111827;
+  display:flex;
+  flex-direction:column;
+  min-height:260px;
+}
+#liveTopBar{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+  border-bottom:1px solid #e5e7eb;
+  padding-bottom:6px;
+  margin-bottom:8px;
+}
+#liveHandle{
+  font-size:13px;
+  font-weight:600;
+}
+#liveUrl{
+  font-size:11px;
+  color:#4b5563;
+}
+#liveLangs{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.langChip{
+  padding:3px 9px;
+  border-radius:999px;
+  border:1px solid #d1d5db;
+  font-size:11px;
+  background:#ffffff;
+  cursor:pointer;
+}
+.langChip.active{
+  background:#111827;
+  color:#f9fafb;
+  border-color:#111827;
+}
+#liveMain{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:10px;
+}
+@media(max-width:800px){
+  #liveMain{
+    grid-template-columns:1fr;
+  }
+}
+#livePages{
+  border-right:1px solid #e5e7eb;
+  padding-right:8px;
+}
+@media(max-width:800px){
+  #livePages{
+    border-right:none;
+    border-bottom:1px solid #e5e7eb;
+    padding-right:0;
+    padding-bottom:8px;
+    margin-bottom:8px;
+  }
+}
+.pageItem{
+  padding:6px 8px;
+  border-radius:8px;
+  font-size:12px;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.pageItem span{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.pageItem.active{
+  background:#e0e7ff;
+  color:#111827;
+  font-weight:600;
+}
+.pageItem small{
+  font-size:10px;
+  color:#6b7280;
+}
+#liveCanvas{
+  position:relative;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  background:#ffffff;
+  padding:16px;
+  min-height:220px;
+  overflow:auto;
+}
+
+/* Blocks in viewer */
+.v-block{
+  margin-bottom:8px;
+  padding:4px;
+}
+.v-block.section{
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  padding:18px;
+  margin-bottom:14px;
+}
+.v-block button{
+  padding:7px 14px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  background:#111827;
+  color:#f9fafb;
+  font-size:13px;
+}
+.v-block img{
+  max-width:100%;
+  border-radius:12px;
+}
+
+/* free-position viewer blocks */
+.liveFree{
+  position:absolute;
+  border-radius:12px;
+  overflow:hidden;
+}
+.liveFree .inner{
+  width:100%;
+  height:100%;
+  overflow:auto;
+  padding:10px;
+}
+.liveFree.section .inner{
+  padding:18px;
+}
+.liveFree img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* faded hint */
+.hint{
+  font-size:11px;
+  color:#9ca3af;
+  margin-top:4px;
+}
+
+/* small code span */
+code{
+  font-size:11px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- LEFT SIDE: JSON INPUT -->
+  <div>
+    <h1>SIte Live</h1>
+    <p class="sub">
+      Micro-host viewer for your published SIte JSON.
+      Paste the payload from <b>Publish</b> in SIte Alpha and load it here.
+    </p>
+
+    <label for="jsonInput">Publish JSON</label>
+    <textarea id="jsonInput" placeholder='{"handle":"mybrand","publishedAt":"...","site":{...}}'></textarea>
+
+    <div class="row">
+      <button id="btnLoad" class="primary">Load JSON</button>
+      <button id="btnUseSample" class="secondary">Sample</button>
+      <button id="btnClear" class="ghost">Clear</button>
+    </div>
+
+    <div id="status"></div>
+
+    <div style="margin-top:10px;">
+      <div class="badge badge-ok">Local only</div>
+      <div class="badge">No network calls</div>
+      <div class="badge badge-warn">Viewer is read-only</div>
+      <div class="hint">
+        Last loaded payload is cached in this browser so you can refresh without losing it.
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE: LIVE VIEWER -->
+  <div id="viewerCard">
+    <div id="liveTopBar">
+      <div>
+        <div id="liveHandle">Handle: —</div>
+        <div id="liveUrl">URL: —</div>
+      </div>
+      <div id="liveLangs"></div>
+    </div>
+
+    <div id="liveMain">
+      <nav id="livePages">
+        <div class="hint">Pages will appear here after loading JSON.</div>
+      </nav>
+      <div id="liveCanvas">
+        <div class="hint">
+          Paste a publish payload on the left and click <b>Load JSON</b> to render your SIte layout.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============== Helpers ============== */
+const $ = (id)=>document.getElementById(id);
+function safeParse(str, fb){
+  try{ return JSON.parse(str); }catch(e){ return fb; }
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
+}
+function clamp(n,min,max){ return Math.max(min,Math.min(max,n)); }
+
+const LIVE_STORAGE_KEY = "SITE_ALPHA_LIVE_LAST";
+
+/* ============== State ============== */
+let liveHandle = null;
+let liveSite   = null;
+let liveLang   = null;
+let livePage   = null;
+
+/* ============== Status UI ============== */
+function setStatus(msg, kind="info"){
+  const el = $("status");
+  if(!el) return;
+  el.textContent = msg || "";
+  el.className = "";
+  if(kind==="ok") el.classList.add("ok");
+  else if(kind==="warn") el.classList.add("warn");
+  else if(kind==="bad") el.classList.add("bad");
+}
+
+/* ============== Load / Save last payload ============== */
+function saveLastPayload(obj){
+  try{
+    window.localStorage.setItem(LIVE_STORAGE_KEY, JSON.stringify(obj));
+  }catch(e){}
+}
+function loadLastPayload(){
+  try{
+    const raw = window.localStorage.getItem(LIVE_STORAGE_KEY);
+    if(!raw) return null;
+    return safeParse(raw, null);
+  }catch(e){
+    return null;
+  }
+}
+
+/* ============== Site interpretation ============== */
+function initFromPayload(obj){
+  // Accept either {handle, site} or a bare site object
+  if(obj && obj.site && obj.site.pages){
+    liveHandle = obj.handle || "local";
+    liveSite   = obj.site;
+  }else if(obj && obj.pages){
+    liveHandle = "local";
+    liveSite   = obj;
+  }else{
+    throw new Error("Payload does not look like a SIte publish object.");
+  }
+
+  if(!Array.isArray(liveSite.pages) || liveSite.pages.length===0){
+    throw new Error("No pages found in site.");
+  }
+
+  const langs = (liveSite.languages && liveSite.languages.list) || [];
+  const defCode = (liveSite.languages && liveSite.languages.default) || "en";
+  liveLang = (liveSite.languages && liveSite.languages.active) || defCode || (langs[0] && langs[0].code) || "en";
+
+  livePage = liveSite.pages[0];
+}
+
+/* ============== Language helpers ============== */
+function getLangList(){
+  if(!liveSite || !liveSite.languages || !Array.isArray(liveSite.languages.list)) return [];
+  return liveSite.languages.list;
+}
+function ensureTranslationMap(block){
+  if(!block.t) block.t = {};
+}
+function getText(block, lang){
+  ensureTranslationMap(block);
+  const def = (liveSite && liveSite.languages && liveSite.languages.default) || "en";
+  const val = block.t && typeof block.t[lang]==="string" ? block.t[lang].trim() : "";
+  if(val) return val;
+  const fallback = block.t && block.t[def] ? block.t[def] : "";
+  return fallback;
+}
+
+/* ============== Render top header ============== */
+function renderHeader(){
+  const handleEl = $("liveHandle");
+  const urlEl    = $("liveUrl");
+  const langsEl  = $("liveLangs");
+  if(!liveSite){
+    handleEl.textContent = "Handle: —";
+    urlEl.textContent    = "URL: —";
+    langsEl.innerHTML    = "";
+    return;
+  }
+
+  const handle = liveHandle || "local";
+  handleEl.textContent = "Handle: " + handle;
+  urlEl.textContent    = "URL: https://www.vervenveda.com/" + handle;
+
+  const langs = getLangList();
+  langsEl.innerHTML = "";
+  if(langs.length === 0){
+    langsEl.innerHTML = `<span class="hint">Single language (default)</span>`;
+    return;
+  }
+
+  langs.forEach(l=>{
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "langChip" + (l.code === liveLang ? " active" : "");
+    chip.textContent = `${l.name} (${l.code.toUpperCase()})`;
+    chip.addEventListener("click", ()=>{
+      liveLang = l.code;
+      renderAll();
+    });
+    langsEl.appendChild(chip);
+  });
+}
+
+/* ============== Render pages nav ============== */
+function renderPages(){
+  const nav = $("livePages");
+  if(!nav) return;
+  if(!liveSite){
+    nav.innerHTML = `<div class="hint">Pages will appear here after loading JSON.</div>`;
+    return;
+  }
+  nav.innerHTML = "";
+  liveSite.pages.forEach(p=>{
+    const item = document.createElement("div");
+    item.className = "pageItem" + (livePage && p.id === livePage.id ? " active" : "");
+    const label = document.createElement("span");
+    label.textContent = p.title || "(Untitled)";
+    const mini = document.createElement("small");
+    mini.textContent = p.locked ? "🔒" : "";
+    item.appendChild(label);
+    item.appendChild(mini);
+    item.addEventListener("click", ()=>{
+      livePage = p;
+      renderAll();
+    });
+    nav.appendChild(item);
+  });
+}
+
+/* ============== Render page canvas ============== */
+function applyPageStylesViewer(page){
+  const canvas = $("liveCanvas");
+  if(!canvas) return;
+  const bgColor = page.bgColor || "#ffffff";
+  const bgImage = page.bgImage || "";
+  canvas.style.backgroundColor = bgColor;
+  if(bgImage){
+    canvas.style.backgroundImage = `url(${bgImage})`;
+    canvas.style.backgroundSize = "cover";
+    canvas.style.backgroundPosition = "center center";
+  }else{
+    canvas.style.backgroundImage = "none";
+  }
+}
+
+function applyBlockStyleViewer(b, el){
+  if(!el) return;
+  const st = b.style || {};
+  if(b.type === "section"){
+    el.style.backgroundColor = st.bgColor || "#ffffff";
+    el.style.padding = (typeof st.padding === "number" ? st.padding : 18) + "px";
+    return;
+  }
+  if(b.type === "image"){
+    const filters = st.filters || {};
+    const br = typeof filters.brightness==="number" ? filters.brightness : 1;
+    const ct = typeof filters.contrast==="number"   ? filters.contrast   : 1;
+    const sa = typeof filters.saturate==="number"   ? filters.saturate   : 1;
+    el.style.filter = `brightness(${br}) contrast(${ct}) saturate(${sa})`;
+    return;
+  }
+  if(st.fontSize)   el.style.fontSize = st.fontSize + "px";
+  if(st.color)      el.style.color    = st.color;
+  if(st.fontFamily) el.style.fontFamily = st.fontFamily;
+  if(st.textAlign)  el.style.textAlign  = st.textAlign;
+  if(st.bgColor)    el.style.backgroundColor = st.bgColor;
+}
+
+function onViewerButtonClick(b){
+  const link = b.link || {};
+  if(link.type === "page" && link.pageId && liveSite){
+    const target = liveSite.pages.find(p => p.id === link.pageId);
+    if(target){
+      livePage = target;
+      renderAll();
+      return;
+    }
+  }
+  if(link.type === "url" && link.url){
+    if(link.url === "#top"){
+      const canvas = $("liveCanvas");
+      if(canvas) canvas.scrollTo({top:0, behavior:"smooth"});
+      return;
+    }
+    try{
+      window.open(link.url, "_blank");
+    }catch(e){}
+    return;
+  }
+}
+
+function renderCanvas(){
+  const canvas = $("liveCanvas");
+  if(!canvas) return;
+  if(!liveSite || !livePage){
+    canvas.innerHTML = `<div class="hint">No site loaded yet.</div>`;
+    return;
+  }
+
+  canvas.innerHTML = "";
+  canvas.style.position = "relative";
+
+  applyPageStylesViewer(livePage);
+
+  const lang = liveLang || "en";
+
+  // Flow blocks
+  livePage.blocks.filter(b => !b.pos).forEach(b=>{
+    const wrapper = document.createElement("div");
+    wrapper.className = "v-block" + (b.type === "section" ? " section" : "");
+
+    if(b.type==="text"){
+      ensureTranslationMap(b);
+      wrapper.textContent = getText(b,lang);
+      applyBlockStyleViewer(b, wrapper);
+    }
+    else if(b.type==="button"){
+      ensureTranslationMap(b);
+      const btn = document.createElement("button");
+      btn.textContent = getText(b,lang);
+      btn.addEventListener("click", (e)=>{ e.preventDefault(); onViewerButtonClick(b); });
+      applyBlockStyleViewer(b, btn);
+      wrapper.appendChild(btn);
+    }
+    else if(b.type==="image"){
+      const img = document.createElement("img");
+      img.src = b.src || "https://via.placeholder.com/900x260";
+      applyBlockStyleViewer(b, img);
+      wrapper.appendChild(img);
+    }
+    else if(b.type==="embed"){
+      ensureTranslationMap(b);
+      wrapper.innerHTML = getText(b,lang);
+    }
+    else if(b.type==="section"){
+      ensureTranslationMap(b);
+      wrapper.textContent = getText(b,lang);
+      applyBlockStyleViewer(b, wrapper);
+    }
+
+    canvas.appendChild(wrapper);
+  });
+
+  // Free-position blocks
+  livePage.blocks.filter(b => b.pos).forEach(b=>{
+    const pos = b.pos;
+    const block = document.createElement("div");
+    block.className = "liveFree" + (b.type==="section" ? " section" : "");
+    block.style.left   = (pos && typeof pos.x==="number" ? pos.x : 40) + "px";
+    block.style.top    = (pos && typeof pos.y==="number" ? pos.y : 40) + "px";
+    block.style.width  = (pos && typeof pos.w==="number" ? pos.w : 260) + "px";
+    block.style.height = (pos && typeof pos.h==="number" ? pos.h : 80) + "px";
+
+    const inner = document.createElement("div");
+    inner.className = "inner";
+
+    if(b.type==="section"){
+      ensureTranslationMap(b);
+      inner.textContent = getText(b,lang);
+      applyBlockStyleViewer(b, inner);
+    }
+    else if(b.type==="image"){
+      const img = document.createElement("img");
+      img.src = b.src || "https://via.placeholder.com/900x260";
+      inner.innerHTML = "";
+      inner.appendChild(img);
+      applyBlockStyleViewer(b, img);
+    }
+    else if(b.type==="embed"){
+      ensureTranslationMap(b);
+      inner.innerHTML = getText(b,lang);
+    }
+    else if(b.type==="text"){
+      ensureTranslationMap(b);
+      inner.textContent = getText(b,lang);
+      applyBlockStyleViewer(b, inner);
+    }
+    else if(b.type==="button"){
+      ensureTranslationMap(b);
+      const btn = document.createElement("button");
+      btn.textContent = getText(b,lang);
+      btn.addEventListener("click", (e)=>{ e.preventDefault(); onViewerButtonClick(b); });
+      applyBlockStyleViewer(b, btn);
+      inner.appendChild(btn);
+    }
+
+    block.appendChild(inner);
+    canvas.appendChild(block);
+  });
+}
+
+/* ============== Render all ============== */
+function renderAll(){
+  renderHeader();
+  renderPages();
+  renderCanvas();
+}
+
+/* ============== Controls ============== */
+$("btnLoad").addEventListener("click", ()=>{
+  const raw = $("jsonInput").value.trim();
+  if(!raw){
+    setStatus("Paste a JSON payload from SIte Alpha first.","bad");
+    return;
+  }
+  const obj = safeParse(raw, null);
+  if(!obj){
+    setStatus("Could not parse JSON. Please check formatting.","bad");
+    return;
+  }
+  try{
+    initFromPayload(obj);
+    saveLastPayload(obj);
+    renderAll();
+    setStatus("Site loaded into viewer.","ok");
+  }catch(e){
+    console.error(e);
+    setStatus(e.message || "Could not interpret payload as a SIte publish object.","bad");
+  }
+});
+
+$("btnClear").addEventListener("click", ()=>{
+  $("jsonInput").value = "";
+  liveHandle = null;
+  liveSite   = null;
+  liveLang   = null;
+  livePage   = null;
+  renderAll();
+  setStatus("Cleared viewer. Paste a new JSON to continue.","warn");
+});
+
+// Simple sample payload for quick testing
+$("btnUseSample").addEventListener("click", ()=>{
+  const sample = {
+    handle:"sample_site",
+    publishedAt:new Date().toISOString(),
+    site:{
+      meta:{createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),version:"0.6.5"},
+      domains:{primary:"example.com",aliases:[],liveUrl:""},
+      languages:{
+        default:"en",
+        active:"en",
+        list:[{code:"en",name:"English"},{code:"sp",name:"Spanish"}]
+      },
+      pages:[
+        {
+          id:"home",
+          title:"Home",
+          locked:false,
+          bgColor:"#ffffff",
+          bgImage:"",
+          blocks:[
+            {
+              id:"t1",
+              type:"text",
+              t:{en:"Welcome to your SIte Live demo.",sp:"Bienvenido a tu demo de SIte Live."},
+              style:{fontSize:24,color:"#111827",textAlign:"center"}
+            },
+            {
+              id:"btn1",
+              type:"button",
+              t:{en:"Visit Bazaar Art",sp:"Visitar Bazaar Art"},
+              style:{fontSize:16},
+              link:{type:"url",url:"https://bazaarart.online"},
+              pos:{x:80,y:120,w:200,h:60}
+            }
+          ]
+        }
+      ]
+    }
+  };
+  $("jsonInput").value = JSON.stringify(sample,null,2);
+  setStatus("Sample payload loaded into textarea. Click “Load JSON”.","ok");
+});
+
+/* ============== Auto-load last payload ============== */
+(function autoInit(){
+  const last = loadLastPayload();
+  if(last){
+    $("jsonInput").value = JSON.stringify(last,null,2);
+    try{
+      initFromPayload(last);
+      renderAll();
+      setStatus("Loaded last site from this browser cache.","ok");
+    }catch(e){
+      setStatus("Cached payload exists but could not be rendered. Paste a fresh one if needed.","warn");
+    }
+  }else{
+    setStatus("Paste a publish payload from SIte Alpha to begin.","info");
+  }
+})();
+</script>
+</body>
+</html>
