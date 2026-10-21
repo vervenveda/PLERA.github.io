@@ -34,4 +34,13 @@ Hope's Haven remains the literary and community setting: mountain homes, gardens
 
 ADIT's README describes a reference scaffold, not production security certification. ADIT-STOS's README says it does not start ADIT, open network ports, independently connect to STOS or perform shell/repository mutation. The public PLERA continuity repository should be compared before merging content or redirecting visitors.
 
+
+## STOS — Sovereign Terminal Operating System
+
+The founder reports an active, locally hosted STOS mini-cloud interface at `http://127.0.0.1:9844/ui/mini-cloud.html`. Loopback addresses are only reachable from the computer or environment that hosts the service; the PLERA website must not present this as a public web service. The running interface has not been remotely inspected in this archival pass.
+
+Historical source repositories include [STOSarchive](https://github.com/artist1970/STOSarchive), containing host bootstrap guidance, terminal fleet scripts and security documentation, and [STOS.github.io](https://github.com/artist1970/STOS.github.io).
+
+**Architectural distinction:** STOS is part of the sovereign hosting and execution infrastructure. PLERA's public-facing world and codex must not acquire direct administrative or terminal authority. The separate ADIT and ADIT-STOS repositories describe controlled transport and policy boundaries. Do not publish operational secrets, local gateway configuration, or protected infrastructure details.
+
 [Return to PLERA](../index.html)
