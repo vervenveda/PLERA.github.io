@@ -23,4 +23,15 @@ The earlier design names Sentinel, Repo, Beta, Recovery, and Directory Spyders. 
 
 Hope's Haven remains the literary and community setting: mountain homes, gardens, rivers, village amenities, and the stories of the mentors. Its imaginative history is preserved separately from technical project descriptions.
 
+
+## ADIT and the Khaemenes Academy infrastructure
+
+| Project | Repository | Documented responsibility |
+|---|---|---|
+| ADIT | [KhaemenesAcademy/ADIT](https://github.com/KhaemenesAcademy/ADIT) | Controlled MCP access bridge designed for a future private STOS Gateway path; passage without authority |
+| ADIT-STOS | [KhaemenesAcademy/ADIT-STOS](https://github.com/KhaemenesAcademy/ADIT-STOS) | Alpha policy companion for read, observe, guide and proposal handling; no direct execution authority |
+| PLERA continuity site | [KhaemenesAcademy/PLERA.github.io](https://github.com/KhaemenesAcademy/PLERA.github.io) | Separate public continuity presence with phase documentation and validation workflow; distinct from this private world archive |
+
+ADIT's README describes a reference scaffold, not production security certification. ADIT-STOS's README says it does not start ADIT, open network ports, independently connect to STOS or perform shell/repository mutation. The public PLERA continuity repository should be compared before merging content or redirecting visitors.
+
 [Return to PLERA](../index.html)
