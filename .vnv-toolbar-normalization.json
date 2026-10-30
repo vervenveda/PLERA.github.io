@@ -1,0 +1,34 @@
+{
+  "schema": "vnv-toolbar-normalization-v1",
+  "counts": {
+    "html": 20,
+    "eligible": 18,
+    "already": 0,
+    "changed": 18,
+    "protected": 0,
+    "internal": 0,
+    "fragments": 2,
+    "legacyRemoved": 0,
+    "duplicatesCollapsed": 0
+  },
+  "changed": [
+    "codex/artist1970-audit.html",
+    "codex/community.html",
+    "codex/mentors.html",
+    "codex/origins.html",
+    "codex/portrait-archive.html",
+    "codex/residential-district.html",
+    "codex/sanctuary-charter.html",
+    "codex/source-register.html",
+    "codex/world-atlas.html",
+    "index.html",
+    "realms/chronicles.html",
+    "realms/galactic.html",
+    "realms/goliath.html",
+    "realms/matrix.html",
+    "realms/mentor-pals.html",
+    "realms/universe.html",
+    "realms/village-atlas.html",
+    "realms/village.html"
+  ]
+}
